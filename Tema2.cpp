@@ -102,24 +102,129 @@ void Tema2::Update(float deltaTimeSeconds)
     //    RenderMesh(meshes["sphere"], shaders["VertexNormal"], modelMatrix);
     //}
 
+    //player
+    if (renderCameraTarget)
     {
-        glm::mat4 modelMatrix = glm::mat4(1);
-        modelMatrix = glm::translate(modelMatrix, glm::vec3(1, 1.75f, 3));
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.75f));
-        modelMatrix = glm::rotate(modelMatrix, RADIANS(45.f), glm::vec3(0, 0, 1));
-        modelMatrix = glm::rotate(modelMatrix, RADIANS(25.f), glm::vec3(0, 1, 0));
-        RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+        //picior drept
+        {
+            {
+                glm::mat4 modelMatrix = glm::mat4(1);
+                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(0.12f, -0.36f, 0));
+                modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+                RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+            }
+            {
+                glm::mat4 modelMatrix = glm::mat4(1);
+                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(0.12f, -0.16, 0));
+                modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+                RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+            }
+        }
+        //picior stang
+        {
+            {
+                glm::mat4 modelMatrix = glm::mat4(1);
+                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(-0.12f, -0.36f, 0));
+                modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+                RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+            }
+            {
+                glm::mat4 modelMatrix = glm::mat4(1);
+                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(-0.12f, -0.16, 0));
+                modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+                RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+            }
+        }
+        //corp
+        {
+            {
+                glm::mat4 modelMatrix = glm::mat4(1);
+                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(0, 0.f, 0));
+                modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+                RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+            }
+            {
+                glm::mat4 modelMatrix = glm::mat4(1);
+                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(0.2f, 0.f, 0));
+                modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+                RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+            }
+            {
+                glm::mat4 modelMatrix = glm::mat4(1);
+                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(-0.2f, 0.f, 0));
+                modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+                RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+            }
+
+            {
+                glm::mat4 modelMatrix = glm::mat4(1);
+                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(0, 0.16f, 0));
+                modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+                RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+            }
+            {
+                glm::mat4 modelMatrix = glm::mat4(1);
+                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(0.2f, 0.16f, 0));
+                modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+                RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+            }
+            {
+                glm::mat4 modelMatrix = glm::mat4(1);
+                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(-0.2f, 0.16f, 0));
+                modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+                RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+            }
+        }
+        // cap
+        {
+            {
+                glm::mat4 modelMatrix = glm::mat4(1);
+                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(0, 0.37f, 0));
+                modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+                RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+            }
+        }
+        //brat drept
+        {
+            {
+                glm::mat4 modelMatrix = glm::mat4(1);
+                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(0.415f, 0.16f, 0));
+                modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+                RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);    
+            }
+            {
+                glm::mat4 modelMatrix = glm::mat4(1);
+                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(0.415f, 0.f, 0));
+                modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+                RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+            }
+        }
+        //brat stang
+        {
+            {
+                glm::mat4 modelMatrix = glm::mat4(1);
+                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(-0.415f, 0.16f, 0));
+                modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+                RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+            }
+            {
+                glm::mat4 modelMatrix = glm::mat4(1);
+                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(-0.415f, 0.f, 0));
+                modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+                RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+            }
+        }
     }
 
     // Render the camera target. This is useful for understanding where
     // the rotation point is, when moving in third-person camera mode.
-    if (renderCameraTarget)
-    {
-        glm::mat4 modelMatrix = glm::mat4(1);
-        modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition());
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.1f));
-        RenderMesh(meshes["sphere"], shaders["VertexNormal"], modelMatrix);
-    }
+    //if (renderCameraTarget)
+    //{
+    //    glm::mat4 modelMatrix = glm::mat4(1);
+    //    modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition()); //  +glm::vec3(0.5f, 0, 0));
+    //    modelMatrix = glm::scale(modelMatrix, glm::vec3(0.1f));
+    //    RenderMesh(meshes["sphere"], shaders["VertexNormal"], modelMatrix);
+    //}
 }
 
 
