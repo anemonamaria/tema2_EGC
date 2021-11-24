@@ -30,6 +30,10 @@ namespace m1
         void OnMouseScroll(int mouseX, int mouseY, int offsetX, int offsetY) override;
         void OnWindowResize(int width, int height) override;
         void Tema2::ResetProjectile();
+        void Tema2::setPlayerAngle();
+        int** Tema2::createMaze(int **grid, int n);
+        bool Tema2::checkCell(int** grid, int n, int i, int j, int dir);
+        int Tema2::checkFreeDir(int** grid, int i, int j, int n);
 
      protected:
         implemented::Camera_hw*camera;
@@ -47,9 +51,18 @@ namespace m1
         struct projectile_t {
             int x;
             int y;
-            int angle;
+            int z;
+            float angle;
             float lenght;
             bool shot;
         }projectile;
+
+        struct player_t {
+            float angle;
+        } player;
+
+        int cursorX, cursorY;
+
+        //int **grid;
     };
 }   // namespace m1
