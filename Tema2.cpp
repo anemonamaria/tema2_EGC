@@ -35,6 +35,12 @@ void Tema2::Init()
     camera = new implemented::Camera_hw();
     camera->Set(glm::vec3(0, 2, 3.5f), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
 
+    projectile.x = 0;
+    projectile.y = 0;
+    projectile.angle = 0;
+    projectile.lenght = 0.0;
+    projectile.shot = false;
+
     {
         Mesh* mesh = new Mesh("box");
         mesh->LoadMesh(PATH_JOIN(window->props.selfDir, RESOURCE_PATH::MODELS, "primitives"), "box.obj");
@@ -101,6 +107,25 @@ void Tema2::Update(float deltaTimeSeconds)
     //    modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f));
     //    RenderMesh(meshes["sphere"], shaders["VertexNormal"], modelMatrix);
     //}
+
+    //projectile
+    {
+        glm::mat4 modelMatrix = glm::mat4(1);
+        modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(projectile.x, projectile.y, 0)); //  +glm::vec3(0.5f, 0, 0));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.1f));
+        RenderMesh(meshes["sphere"], shaders["VertexNormal"], modelMatrix);
+    }
+
+    //projectile movement
+    if (projectile.shot == true) 
+    {
+        projectile.x += deltaTimeSeconds * 50;
+        projectile.y += deltaTimeSeconds * 50;
+        projectile.lenght = sqrt((double)((projectile.x) * (projectile.x)) + (double)((projectile.y) * (projectile.y)));
+
+        if (projectile.lenght >= 3)
+            ResetProjectile();
+    }
 
     //player
     if (renderCameraTarget)
@@ -254,6 +279,14 @@ void Tema2::RenderMesh(Mesh * mesh, Shader * shader, const glm::mat4 & modelMatr
  *  how they behave, see `input_controller.h`.
  */
 
+void Tema2::ResetProjectile() {
+    projectile.x = 0; // camera->GetTargetPosition().x;
+    projectile.y = 0; // camera->GetTargetPosition().y;
+    projectile.angle = 0;
+    projectile.lenght = 0;
+    projectile.shot = false;
+}
+
 
 void Tema2::OnInputUpdate(float deltaTime, int mods)
 {
@@ -352,9 +385,6 @@ void Tema2::OnKeyRelease(int key, int mods)
 void Tema2::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY)
 {
     // Add mouse move event
-
-   // if (window->MouseHold(GLFW_MOUSE_BUTTON_RIGHT))
-    //{
         float sensivityOX = 0.001f;
         float sensivityOY = 0.001f;
 
@@ -366,18 +396,14 @@ void Tema2::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY)
             camera->RotateFirstPerson_OX(sensivityOX * -deltaY);
             camera->RotateFirstPerson_OY(sensivityOY * -deltaX);
 
+            if (projectile.shot == false && window->KeyHold(GLFW_KEY_SPACE)) {
+                projectile.shot = true;
+            }
+
         }
 
-        //if (window->GetSpecialKeyState() & GLFW_MOD_CONTROL) {
-            renderCameraTarget = true;
-        //    // TODO(student): Rotate the camera in third-person mode around
-        //    // OX and OY using `deltaX` and `deltaY`. Use the sensitivity
-        //    // variables for setting up the rotation speed.
-        //    camera->RotateThirdPerson_OX(sensivityOX * -deltaY);
-        //    camera->RotateThirdPerson_OY(sensivityOY * -deltaX);
-
-        //}
-    //}
+       renderCameraTarget = true;
+     
 }
 
 

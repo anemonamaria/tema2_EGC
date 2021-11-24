@@ -29,6 +29,7 @@ namespace m1
         void OnMouseBtnRelease(int mouseX, int mouseY, int button, int mods) override;
         void OnMouseScroll(int mouseX, int mouseY, int offsetX, int offsetY) override;
         void OnWindowResize(int width, int height) override;
+        void Tema2::ResetProjectile();
 
      protected:
         implemented::Camera_hw*camera;
@@ -42,5 +43,13 @@ namespace m1
         float bottom;
         float top;
         float fov;
+
+        struct projectile_t {
+            int x;
+            int y;
+            int angle;
+            float lenght;
+            bool shot;
+        }projectile;
     };
 }   // namespace m1
