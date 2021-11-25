@@ -1,6 +1,5 @@
 #include "lab_m1/Tema2/Tema2.h"
 
-#include <vector>
 #include <string>
 #include <iostream>
 
@@ -39,18 +38,22 @@ void Tema2::Init()
     projectile.angle = player.angle = 0.0;
     projectile.lenght = 0.0;
     projectile.shot = false;
-   /* for (int i = 0; i < 10; i++) {
+    grid.resize(10);
+    for (int i = 0; i < 10; i++) {
+        grid[i].resize(10);
         for (int j = 0; j < 10; j++) {
             grid[i][j] = -1;
         }
     }
-    grid = createMaze(grid, 10);
+    createMaze(grid, 10);
     for (int i = 0; i < 10; i++) {
         for (int j = 0; j < 10; j++) {
+            if (grid[i][j] == -1)
+                grid[i][j] = 2;
             printf("%d ", grid[i][j]);
         }
         printf("\n");
-    }*/
+    }
     {
         Mesh* mesh = new Mesh("box");
         mesh->LoadMesh(PATH_JOIN(window->props.selfDir, RESOURCE_PATH::MODELS, "primitives"), "box.obj");
@@ -63,18 +66,15 @@ void Tema2::Init()
         meshes[mesh->GetMeshID()] = mesh;
     }
 
-    // TODO(student): After you implement the changing of the projection
-    // parameters, remove hardcodings of these parameters
     projectionMatrix = glm::perspective(RADIANS(60), window->props.aspectRatio, 0.01f, 200.0f);
 
 }
-///////////////////////////////
-// 
+
 // -1 - celula nevizitata
 // 0 - drum liber 
 // 1 - inamic
 // 2 - perete
-int** Tema2::createMaze(int **grid, int n) {
+void Tema2::createMaze(vector<vector<int>> &grid, int n) {
     int i = 0, j = 0;
     int nrOfEnemies = 5;
     srand(time(NULL));
@@ -135,14 +135,14 @@ int** Tema2::createMaze(int **grid, int n) {
             dir = checkFreeDir(grid, i, j, n);
         }
         if (dir == -1)
-            exit;
+            exit;  // TODO de creat functie care sa sara la alti i si j
     } while (i < 9 && j < 9);
 
-    return grid;
 }
 
-int Tema2::checkFreeDir(int** grid, int i, int j, int n)
+int Tema2::checkFreeDir(vector<vector<int>> grid, int i, int j, int n)
 {
+
     int dir = -1;
     if (i < n - 1 && grid[i + 1][j] == -1)
         dir = 0;
@@ -155,7 +155,7 @@ int Tema2::checkFreeDir(int** grid, int i, int j, int n)
     return dir;
 }
 
-bool Tema2::checkCell(int **grid, int n, int i, int j, int dir) 
+bool Tema2::checkCell(vector<vector<int>> grid, int n, int i, int j, int dir)
 {
     if (dir == 0 && i == n - 1)
         return false;
@@ -165,19 +165,16 @@ bool Tema2::checkCell(int **grid, int n, int i, int j, int dir)
         return false;
     if (dir == 3 && i == 0)
         return false;
-    if (dir == 0 && grid[i + 1][j] != -1)
+    if (dir == 0 && i + 1 < 10 && grid[i + 1][j] != -1)
         return false;
-    if (dir == 1 && grid[i][j + 1] != -1)
+    if (dir == 1 && j + 1 < 10 && grid[i][j + 1] != -1)
         return false;
-    if (dir == 2 && grid[i][j - 1] != -1)
+    if (dir == 2 && j != 0 && grid[i][j - 1] != -1)
         return false;
-    if (dir == 3 && grid[i][j - 1] != -1)
+    if (dir == 3 && i != 0 && grid[i - 1][j] != -1)
         return false;
     return true;
 }
-/// <summary>
-/// //////////////////////////////////////
-/// </summary>
 
 void Tema2::FrameStart()
 {
@@ -204,13 +201,13 @@ void Tema2::Update(float deltaTimeSeconds)
     //projectile movement
     if (projectile.shot == true) 
     {
-        projectile.x += deltaTimeSeconds * 50 * cos(projectile.angle);
-        projectile.y += deltaTimeSeconds * 50 * sin(projectile.angle)/ cos(projectile.angle); //TODO aici e stricat, fa unghiul bun
-        projectile.z += deltaTimeSeconds * 50 * sin(projectile.angle);
+        //projectile.x += deltaTimeSeconds * 50 * cos(projectile.angle);
+        //projectile.y += deltaTimeSeconds * 50 * sin(projectile.angle)/ cos(projectile.angle); //TODO aici e stricat, fa unghiul bun
+        projectile.z -= deltaTimeSeconds * 50; // *sin(projectile.angle);
 
-        projectile.lenght = sqrt((double)(((double)projectile.x) * (projectile.x)) + (double)(((double)projectile.z) * (projectile.z)));
+        projectile.lenght = sqrt((double)(projectile.z) * (projectile.z));
 
-        if (projectile.lenght >= 5)
+        if (projectile.lenght >= 3.5)
             ResetProjectile();
     }
 
@@ -357,8 +354,8 @@ void Tema2::RenderMesh(Mesh * mesh, Shader * shader, const glm::mat4 & modelMatr
  */
 
 void Tema2::ResetProjectile() {
-    projectile.x = 0; // camera->GetTargetPosition().x;
-    projectile.y = 0; // camera->GetTargetPosition().y;
+    projectile.x = 0; 
+    projectile.y = 0; 
     projectile.z = 0;
     projectile.angle = 0;
     projectile.lenght = 0;
@@ -394,55 +391,11 @@ void Tema2::OnInputUpdate(float deltaTime, int mods)
     if (window->KeyHold(GLFW_KEY_E)) {
         camera->TranslateUpward(cameraSpeed);
     }
-
-    // TODO(student): Change projection parameters. Declare any extra
-    // variables you might need in the class header. Inspect this file
-    // for any hardcoded projection arguments (can you find any?) and
-    // replace them with those extra variables.
-   /* if (projection) {
-        if (window->KeyHold(GLFW_KEY_G)) {
-            fov += cameraSpeed;
-        }
-
-        if (window->KeyHold(GLFW_KEY_H)) {
-            fov -= cameraSpeed;
-        }
-
-        if (window->KeyHold(GLFW_KEY_J))
-        {
-            bottom += deltaTime;
-            top += deltaTime;
-        }
-        if (window->KeyHold(GLFW_KEY_K))
-        {
-            bottom -= deltaTime;
-            top -= deltaTime;
-        }
-    }*/
-
 }
 
 
 void Tema2::OnKeyPress(int key, int mods)
 {
-    // Add key press event
-   /* if (key == GLFW_KEY_T)
-    {
-        renderCameraTarget = !renderCameraTarget;
-    }
-
-    if (key == GLFW_KEY_O)
-    {
-        projection = false;
-        projectionMatrix = glm::ortho(left, right, bottom, top, 0.01f, 100.f);
-    }
-
-    if (key == GLFW_KEY_P)
-    {
-        projection = true;
-        projectionMatrix = glm::perspective(RADIANS(60) + fov, window->props.aspectRatio, 0.01f, 100.f);
-    }*/
-    // TODO(student): Switch projections
 
 }
 
@@ -460,13 +413,10 @@ void Tema2::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY)
         float sensivityOY = 0.001f;
         cursorX = mouseX - deltaX;
         cursorY = mouseY - deltaY;
-        setPlayerAngle();
+       // setPlayerAngle();
 
         if (window->GetSpecialKeyState() & GLFW_MOD_CONTROL) {
             renderCameraTarget = false;
-            // TODO(student): Rotate the camera in first-person mode around
-            // OX and OY using `deltaX` and `deltaY`. Use the sensitivity
-            // variables for setting up the rotation speed.
             camera->RotateFirstPerson_OX(sensivityOX * -deltaY);
             camera->RotateFirstPerson_OY(sensivityOY * -deltaX);
             if (projectile.shot == false && window->KeyHold(GLFW_KEY_SPACE))

@@ -2,24 +2,25 @@
 
 #include "components/simple_scene.h"
 #include "lab_m1/Tema2/lab_camera_hw.h"
-
+#include <vector>
+using namespace std;
 
 namespace m1
 {
     class Tema2 : public gfxc::SimpleScene
     {
-     public:
-         Tema2();
+    public:
+        Tema2();
         ~Tema2();
 
         void Init() override;
 
-     private:
+    private:
         void FrameStart() override;
         void Update(float deltaTimeSeconds) override;
         void FrameEnd() override;
 
-        void RenderMesh(Mesh *mesh, Shader *shader, const glm::mat4 &modelMatrix) override;
+        void RenderMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix) override;
 
         void OnInputUpdate(float deltaTime, int mods) override;
         void OnKeyPress(int key, int mods) override;
@@ -31,12 +32,12 @@ namespace m1
         void OnWindowResize(int width, int height) override;
         void Tema2::ResetProjectile();
         void Tema2::setPlayerAngle();
-        int** Tema2::createMaze(int **grid, int n);
-        bool Tema2::checkCell(int** grid, int n, int i, int j, int dir);
-        int Tema2::checkFreeDir(int** grid, int i, int j, int n);
+        void Tema2::createMaze(vector<vector<int>> &grid, int n);
+        bool Tema2::checkCell(vector<vector<int>> grid, int n, int i, int j, int dir);
+        int Tema2::checkFreeDir(vector<vector<int>> grid, int i, int j, int n);
 
-     protected:
-        implemented::Camera_hw*camera;
+    protected:
+        implemented::Camera_hw* camera;
         glm::mat4 projectionMatrix;
         bool renderCameraTarget;
 
@@ -63,6 +64,6 @@ namespace m1
 
         int cursorX, cursorY;
 
-        //int **grid;
+        vector<vector<int>> grid;
     };
-}   // namespace m1
+};   // namespace m1
