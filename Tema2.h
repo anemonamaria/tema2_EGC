@@ -35,6 +35,8 @@ namespace m1
         void Tema2::createMaze(vector<vector<int>> &grid, int n);
         bool Tema2::checkCell(vector<vector<int>> grid, int n, int i, int j, int dir);
         int Tema2::checkFreeDir(vector<vector<int>> grid, int i, int j, int n);
+        Mesh* Tema2::CreateMySquare(const std::string& name, glm::vec3 leftBottomCorner, float length,
+            float width, glm::vec3 color, bool fill);
 
     protected:
         implemented::Camera_hw* camera;
@@ -60,6 +62,10 @@ namespace m1
 
         struct player_t {
             float angle;
+            int x;
+            int y;
+            int z;
+            glm::vec3 position;
         } player;
 
         int cursorX, cursorY;

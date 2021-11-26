@@ -38,8 +38,14 @@ void Tema2::Init()
     projectile.angle = player.angle = 0.0;
     projectile.lenght = 0.0;
     projectile.shot = false;
+    player.x = 0;
+    player.y = 0;
+    player.z = 0;
+    player.position = glm::vec3(0, 0, 0);
     grid.resize(10);
-    for (int i = 0; i < 10; i++) {
+    //TODO fa generarea de labirint buna --> apoi in functie de labirnit creezi obiecte care vor forma labirintul in 
+    //joc pe casutele in care se afla obstacole
+    /*for (int i = 0; i < 10; i++) {
         grid[i].resize(10);
         for (int j = 0; j < 10; j++) {
             grid[i][j] = -1;
@@ -53,7 +59,7 @@ void Tema2::Init()
             printf("%d ", grid[i][j]);
         }
         printf("\n");
-    }
+    }*/
     {
         Mesh* mesh = new Mesh("box");
         mesh->LoadMesh(PATH_JOIN(window->props.selfDir, RESOURCE_PATH::MODELS, "primitives"), "box.obj");
@@ -65,6 +71,21 @@ void Tema2::Init()
         mesh->LoadMesh(PATH_JOIN(window->props.selfDir, RESOURCE_PATH::MODELS, "primitives"), "sphere.obj");
         meshes[mesh->GetMeshID()] = mesh;
     }
+
+    {
+        Mesh* mesh = new Mesh("podea");
+        mesh = CreateMySquare("podea", glm::vec3(-2.3f, 0, -3.5f), 30, 50, glm::vec3(0, 1, 0), true);
+        AddMeshToList(mesh);
+    }
+    //player shader
+    // TODO problema aici de linkare files
+    /*{
+        Shader* player_shader = new Shader("PlayerShader");
+        player_shader->AddShader("D:\ACS CTI\anul 3\sem1\egc\gfx-framework-master\src\lab_m1\Tema2\shaders\VertexShader.glsl", GL_VERTEX_SHADER);
+        player_shader->AddShader("D:\ACS CTI\anul 3\sem1\egc\gfx-framework-master\src\lab_m1\Tema2\shaders\FragmentShader.glsl", GL_FRAGMENT_SHADER);
+        player_shader->CreateAndLink();
+        shaders[player_shader->GetName()] = player_shader;
+    }*/
 
     projectionMatrix = glm::perspective(RADIANS(60), window->props.aspectRatio, 0.01f, 200.0f);
 
@@ -135,7 +156,22 @@ void Tema2::createMaze(vector<vector<int>> &grid, int n) {
             dir = checkFreeDir(grid, i, j, n);
         }
         if (dir == -1)
-            exit;  // TODO de creat functie care sa sara la alti i si j
+            while (i < 10 && j < 10 && dir == -1) {
+                if (i > 0 && grid[i - 1][j] != -1 && checkFreeDir(grid, i - 1, j, n) != -1) {
+                    i--;
+                } else
+                if (j > 0 && grid[i ][j - 1] != -1 && checkFreeDir(grid, i, j - 1, n) != -1) {
+                    j--;
+                } else 
+                if (i < 9 && grid[i + 1][j] != -1 && checkFreeDir(grid, i + 1, j, n) != -1) {
+                    i++;
+                } else
+                if (j < 9 && grid[i][j + 1] != -1 && checkFreeDir(grid, i, j + 1, n) != -1) {
+                    j++;
+                }
+                else
+                    exit;
+            }
     } while (i < 9 && j < 9);
 
 }
@@ -187,6 +223,35 @@ void Tema2::FrameStart()
     glViewport(0, 0, resolution.x, resolution.y);
 }
 
+Mesh* Tema2::CreateMySquare(const std::string& name, glm::vec3 leftBottomCorner, float length,
+    float width, glm::vec3 color, bool fill)
+{
+    glm::vec3 corner = leftBottomCorner;
+
+    std::vector<VertexFormat> vertices =
+    {
+        VertexFormat(corner, color),
+        VertexFormat(corner + glm::vec3(length, 0, 0), color),
+        VertexFormat(corner + glm::vec3(length, width, 0), color),
+        VertexFormat(corner + glm::vec3(0, width, 0), color)
+    };
+
+    Mesh* square = new Mesh(name);
+    std::vector<unsigned int> indices = { 0, 1, 2, 3 };
+
+    if (!fill) {
+        square->SetDrawMode(GL_LINE_LOOP);
+    }
+    else {
+        // Draw 2 triangles. Add the remaining 2 indices
+        indices.push_back(0);
+        indices.push_back(2);
+    }
+
+    square->InitFromData(vertices, indices);
+    return square;
+}
+
 
 void Tema2::Update(float deltaTimeSeconds)
 {
@@ -196,6 +261,16 @@ void Tema2::Update(float deltaTimeSeconds)
         modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(projectile.x, projectile.y, projectile.z)); //  +glm::vec3(0.5f, 0, 0));
         modelMatrix = glm::scale(modelMatrix, glm::vec3(0.1f));
         RenderMesh(meshes["sphere"], shaders["VertexNormal"], modelMatrix);
+    }
+
+    //podea
+    { 
+        //TODO de ce nu te vezi?
+
+        glm::mat4 modelMatrix = glm::mat4(1);
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(0, 0, 0)); //  +glm::vec3(0.5f, 0, 0));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(1.f));
+        RenderMesh(meshes["square"], shaders["VertexNormal"], modelMatrix);
     }
 
     //projectile movement
@@ -212,19 +287,23 @@ void Tema2::Update(float deltaTimeSeconds)
     }
 
     //player
+    player.x = camera->GetTargetPosition().x;
+    player.y = camera->GetTargetPosition().y;
+    player.z = camera->GetTargetPosition().z;
+    player.position = camera->GetTargetPosition();
     if (renderCameraTarget)
     {
         //picior drept
         {
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
-                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(0.12f, -0.36f, 0));
+                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.12f, -0.36f, 0));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
                 RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
-                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(0.12f, -0.16, 0));
+                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.12f, -0.16, 0));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
                 RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
@@ -233,13 +312,13 @@ void Tema2::Update(float deltaTimeSeconds)
         {
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
-                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(-0.12f, -0.36f, 0));
+                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(-0.12f, -0.36f, 0));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
                 RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
-                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(-0.12f, -0.16, 0));
+                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(-0.12f, -0.16, 0));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
                 RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
@@ -248,38 +327,38 @@ void Tema2::Update(float deltaTimeSeconds)
         {
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
-                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(0, 0.f, 0));
+                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0, 0.f, 0));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
                 RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
-                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(0.2f, 0.f, 0));
+                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.2f, 0.f, 0));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
                 RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
-                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(-0.2f, 0.f, 0));
+                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(-0.2f, 0.f, 0));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
                 RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
 
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
-                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(0, 0.16f, 0));
+                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0, 0.16f, 0));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
                 RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
-                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(0.2f, 0.16f, 0));
+                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.2f, 0.16f, 0));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
                 RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
-                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(-0.2f, 0.16f, 0));
+                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(-0.2f, 0.16f, 0));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
                 RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
@@ -288,7 +367,7 @@ void Tema2::Update(float deltaTimeSeconds)
         {
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
-                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(0, 0.37f, 0));
+                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0, 0.37f, 0));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
                 RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
@@ -297,13 +376,13 @@ void Tema2::Update(float deltaTimeSeconds)
         {
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
-                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(0.415f, 0.16f, 0));
+                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.415f, 0.16f, 0));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
                 RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);    
             }
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
-                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(0.415f, 0.f, 0));
+                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.415f, 0.f, 0));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
                 RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
@@ -312,13 +391,13 @@ void Tema2::Update(float deltaTimeSeconds)
         {
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
-                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(-0.415f, 0.16f, 0));
+                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(-0.415f, 0.16f, 0));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
                 RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
-                modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(-0.415f, 0.f, 0));
+                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(-0.415f, 0.f, 0));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
                 RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
