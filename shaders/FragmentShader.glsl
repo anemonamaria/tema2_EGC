@@ -15,7 +15,7 @@ layout(location = 2) out vec3 out_texture;
 void main()
 {
     // TODO(student): Write pixel out color
-    out_color	= vec4(v_color, 1.f);
+    out_color	= vec4(v_color, 1.5f);
 	out_normal	= vec4(v_normal, 1.f);
 	out_texture = vec3(v_texture, 1.f);
 }

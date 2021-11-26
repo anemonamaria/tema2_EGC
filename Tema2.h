@@ -32,11 +32,13 @@ namespace m1
         void OnWindowResize(int width, int height) override;
         void Tema2::ResetProjectile();
         void Tema2::setPlayerAngle();
-        void Tema2::createMaze(vector<vector<int>> &grid, int n);
-        bool Tema2::checkCell(vector<vector<int>> grid, int n, int i, int j, int dir);
-        int Tema2::checkFreeDir(vector<vector<int>> grid, int i, int j, int n);
         Mesh* Tema2::CreateMySquare(const std::string& name, glm::vec3 leftBottomCorner, float length,
             float width, glm::vec3 color, bool fill);
+        void Tema2::MyRenderSimpleMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, const glm::vec3& color);
+        bool Tema2::isInBounds(int x, int y);
+        void Tema2::visitGrid(int x, int y, vector<vector<int>> &grid);
+
+
 
     protected:
         implemented::Camera_hw* camera;
@@ -66,10 +68,16 @@ namespace m1
             int y;
             int z;
             glm::vec3 position;
+            float lives;
         } player;
 
         int cursorX, cursorY;
 
         vector<vector<int>> grid;
+
+        glm::vec3 lightPosition;
+        unsigned int materialShininess;
+        float materialKd;
+        float materialKs;
     };
 };   // namespace m1

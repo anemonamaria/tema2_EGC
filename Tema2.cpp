@@ -6,6 +6,12 @@
 using namespace std;
 using namespace m1;
 
+#define NORTH 0
+#define EAST 1
+#define SOUTH 2
+#define WEST 3
+
+#define GRID_SIZE 10
 
 /*
  *  To find out more about `FrameStart`, `Update`, `FrameEnd`
@@ -41,17 +47,21 @@ void Tema2::Init()
     player.x = 0;
     player.y = 0;
     player.z = 0;
+    player.lives = 1.0f;
     player.position = glm::vec3(0, 0, 0);
     grid.resize(10);
     //TODO fa generarea de labirint buna --> apoi in functie de labirnit creezi obiecte care vor forma labirintul in 
     //joc pe casutele in care se afla obstacole
-    /*for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 10; i++) {
         grid[i].resize(10);
         for (int j = 0; j < 10; j++) {
-            grid[i][j] = -1;
+            grid[i][j] = 2;
         }
     }
-    createMaze(grid, 10);
+    srand(time(0));
+    int start = rand() % 10;
+    visitGrid(0, start, grid);
+
     for (int i = 0; i < 10; i++) {
         for (int j = 0; j < 10; j++) {
             if (grid[i][j] == -1)
@@ -59,7 +69,7 @@ void Tema2::Init()
             printf("%d ", grid[i][j]);
         }
         printf("\n");
-    }*/
+    }
     {
         Mesh* mesh = new Mesh("box");
         mesh->LoadMesh(PATH_JOIN(window->props.selfDir, RESOURCE_PATH::MODELS, "primitives"), "box.obj");
@@ -74,142 +84,95 @@ void Tema2::Init()
 
     {
         Mesh* mesh = new Mesh("podea");
-        mesh = CreateMySquare("podea", glm::vec3(-2.3f, 0, -3.5f), 30, 50, glm::vec3(0, 1, 0), true);
+        mesh->LoadMesh(PATH_JOIN(window->props.selfDir, RESOURCE_PATH::MODELS, "primitives"), "plane50.obj");
+        meshes[mesh->GetMeshID()] = mesh;
+    }
+
+    {
+        Mesh* mesh = new Mesh("healthbar");
+        mesh = CreateMySquare("healthbar", glm::vec3(3.2, 2.3, 0), 1, 0.15, glm::vec3(0, 1, 0), true);
         AddMeshToList(mesh);
     }
+
+    {
+        Mesh* mesh = new Mesh("outline");
+        mesh = CreateMySquare("outline", glm::vec3(3.2, 2.3, 0), 1, 0.15, glm::vec3(0, 1, 0), false);
+        AddMeshToList(mesh);
+    }
+
+    {
+        Mesh* mesh = new Mesh("time");
+        mesh = CreateMySquare("time", glm::vec3(3.2, 1.9, 0), 1, 0.15, glm::vec3(0, 1, 0), true);
+        AddMeshToList(mesh);
+    }
+
     //player shader
-    // TODO problema aici de linkare files
-    /*{
+    {
         Shader* player_shader = new Shader("PlayerShader");
-        player_shader->AddShader("D:\ACS CTI\anul 3\sem1\egc\gfx-framework-master\src\lab_m1\Tema2\shaders\VertexShader.glsl", GL_VERTEX_SHADER);
-        player_shader->AddShader("D:\ACS CTI\anul 3\sem1\egc\gfx-framework-master\src\lab_m1\Tema2\shaders\FragmentShader.glsl", GL_FRAGMENT_SHADER);
+        player_shader->AddShader(PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "Tema2", "shaders", "VertexShader.glsl"), GL_VERTEX_SHADER);
+        player_shader->AddShader(PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "Tema2", "shaders", "FragmentShader.glsl"), GL_FRAGMENT_SHADER);
         player_shader->CreateAndLink();
         shaders[player_shader->GetName()] = player_shader;
-    }*/
+    }
 
     projectionMatrix = glm::perspective(RADIANS(60), window->props.aspectRatio, 0.01f, 200.0f);
 
 }
 
+
+bool Tema2::isInBounds(int x, int y) 
+{
+    if(x < 0 || x >= GRID_SIZE) return false;
+    if(y < 0 || y >= GRID_SIZE) return false;
+    return true;
+}
 // -1 - celula nevizitata
 // 0 - drum liber 
 // 1 - inamic
 // 2 - perete
-void Tema2::createMaze(vector<vector<int>> &grid, int n) {
-    int i = 0, j = 0;
-    int nrOfEnemies = 5;
-    srand(time(NULL));
-    do {
-        int dir = rand() % 4;  // 0 jos, 1 dreapta, 2 stanga, 3 sus
-        if (checkCell(grid, n, i, j, dir) == true)
+void Tema2::visitGrid(int x, int y, vector<vector<int>> &grid)
+{
+    grid[x][y] = 0;
+    int dirs[4];
+    dirs[0] = NORTH;
+    dirs[1] = EAST;
+    dirs[2] = SOUTH;
+    dirs[3] = WEST;
+    srand(time(0));
+
+    for (int i = 0; i < 4; i++) {
+        int r = rand() % 4;
+        int tmp = dirs[r];
+        dirs[r] = dirs[i];
+        dirs[i] = tmp;
+    }
+
+    for (int i = 0; i < 4; i++) {
+        int dx = 0;
+        int dy = 0;
+
+        switch (dirs[i])
         {
-            if (nrOfEnemies != 0) {
-                if (dir == 0)
-                {
-                    grid[i + 1][j] = rand() % 2;
-                    nrOfEnemies -= grid[i + 1][j];
-                    i++;
-                }
-                if (dir == 1)
-                {
-                    grid[i][j + 1] = rand() % 2;
-                    nrOfEnemies -= grid[i][j + 1];
-                    j++;
-                }
-                if (dir == 2)
-                {
-                    grid[i][j - 1] = rand() % 2;
-                    nrOfEnemies -= grid[i][j - 1];
-                    j--;
-                }
-                if (dir == 3)
-                {
-                    grid[i - 1][j] = rand() % 2;
-                    nrOfEnemies -= grid[i - 1][j];
-                    i--;
-                }
-            }
-            else {
-                if (dir == 0)
-                {
-                    grid[i + 1][j] = 0;
-                    i++;
-                }
-                if (dir == 1)
-                {
-                    grid[i][j + 1] = 0;
-                    j++;
-                }
-                if (dir == 2)
-                {
-                    grid[i][j - 1] = 0;
-                    j--;
-                }
-                if (dir == 3)
-                {
-                    grid[i - 1][j] = 0;
-                    i--;
-                }
+            case NORTH: dy = -1;
+                break;
+            case SOUTH: dy = 1;
+                break;
+            case EAST: dx = 1;
+                break;
+            case WEST: dx = -1;
+                break;
+        }
+
+        int x2 = x + (dx << 1);
+        int y2 = y + (dy << 1);
+
+        if (isInBounds(x2, y2) && isInBounds(x2-dx, y2-dy)) {
+            if (grid[x2][y2] == 2) {
+                grid[x2 - dx][y2 - dy] = 0;
+                visitGrid(x2, y2, grid);
             }
         }
-        else {
-            dir = checkFreeDir(grid, i, j, n);
-        }
-        if (dir == -1)
-            while (i < 10 && j < 10 && dir == -1) {
-                if (i > 0 && grid[i - 1][j] != -1 && checkFreeDir(grid, i - 1, j, n) != -1) {
-                    i--;
-                } else
-                if (j > 0 && grid[i ][j - 1] != -1 && checkFreeDir(grid, i, j - 1, n) != -1) {
-                    j--;
-                } else 
-                if (i < 9 && grid[i + 1][j] != -1 && checkFreeDir(grid, i + 1, j, n) != -1) {
-                    i++;
-                } else
-                if (j < 9 && grid[i][j + 1] != -1 && checkFreeDir(grid, i, j + 1, n) != -1) {
-                    j++;
-                }
-                else
-                    exit;
-            }
-    } while (i < 9 && j < 9);
-
-}
-
-int Tema2::checkFreeDir(vector<vector<int>> grid, int i, int j, int n)
-{
-
-    int dir = -1;
-    if (i < n - 1 && grid[i + 1][j] == -1)
-        dir = 0;
-    if (j < n - 1 && grid[i][j + 1] == -1)
-        dir = 1;
-    if (j > 1 && grid[i][j - 1] == -1)
-        dir = 2;
-    if (i > 1 && grid[i - 1][j] == -1)
-        dir = 3;
-    return dir;
-}
-
-bool Tema2::checkCell(vector<vector<int>> grid, int n, int i, int j, int dir)
-{
-    if (dir == 0 && i == n - 1)
-        return false;
-    if (dir == 1 && j == n - 1)
-        return false;
-    if (dir == 2 && j == 0)
-        return false;
-    if (dir == 3 && i == 0)
-        return false;
-    if (dir == 0 && i + 1 < 10 && grid[i + 1][j] != -1)
-        return false;
-    if (dir == 1 && j + 1 < 10 && grid[i][j + 1] != -1)
-        return false;
-    if (dir == 2 && j != 0 && grid[i][j - 1] != -1)
-        return false;
-    if (dir == 3 && i != 0 && grid[i - 1][j] != -1)
-        return false;
-    return true;
+    }
 }
 
 void Tema2::FrameStart()
@@ -264,14 +227,12 @@ void Tema2::Update(float deltaTimeSeconds)
     }
 
     //podea
-    { 
-        //TODO de ce nu te vezi?
-
+     {
         glm::mat4 modelMatrix = glm::mat4(1);
-        modelMatrix = glm::translate(modelMatrix, glm::vec3(0, 0, 0)); //  +glm::vec3(0.5f, 0, 0));
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(1.f));
-        RenderMesh(meshes["square"], shaders["VertexNormal"], modelMatrix);
-    }
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(0, 0, 0));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.4f));
+        RenderMesh(meshes["podea"], shaders["VertexNormal"], modelMatrix);
+     }
 
     //projectile movement
     if (projectile.shot == true) 
@@ -286,13 +247,35 @@ void Tema2::Update(float deltaTimeSeconds)
             ResetProjectile();
     }
 
+    //healthbar 
+    {
+        glm::mat4 modelMatrix = glm::mat4(1);
+        modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(0, 0, 0));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.4f));  // TODO de facut in functie de player.lives
+        RenderMesh(meshes["healthbar"], shaders["VertexNormal"], modelMatrix);
+    }
+    //outline 
+    {
+        glm::mat4 modelMatrix = glm::mat4(1);
+        modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(0, 0, 0));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.4f));
+        RenderMesh(meshes["outline"], shaders["VertexNormal"], modelMatrix);
+    }
+    //time 
+    {
+        glm::mat4 modelMatrix = glm::mat4(1);
+        modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(0, 0, 0));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.4f-deltaTimeSeconds)); // TODO de facut asta sa scaleze cum trebuie
+        RenderMesh(meshes["time"], shaders["VertexNormal"], modelMatrix);
+    }
     //player
     player.x = camera->GetTargetPosition().x;
-    player.y = camera->GetTargetPosition().y;
+    player.y = camera->GetTargetPosition().y;  // TODO de facut sa se miste drept
     player.z = camera->GetTargetPosition().z;
     player.position = camera->GetTargetPosition();
     if (renderCameraTarget)
     {
+        // TODO coloreaza astea bine
         //picior drept
         {
             {
@@ -405,6 +388,57 @@ void Tema2::Update(float deltaTimeSeconds)
     }
 }
 
+void Tema2::MyRenderSimpleMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, const glm::vec3& color)
+{
+    if (!mesh || !shader || !shader->GetProgramID())
+        return;
+
+    // Render an object using the specified shader and the specified position
+    glUseProgram(shader->program);
+
+    // Set shader uniforms for light & material properties
+    // TODO(student): Set light position uniform
+    int myLightPosition = glGetUniformLocation(shader->program, "light_position");
+    glUniform3fv(myLightPosition, 1, glm::value_ptr(lightPosition));
+    
+    // TODO wtf?!
+    //glm::vec3 eyePosition = GetSceneCamera()->m_transform->GetWorldPosition();
+    //// TODO(student): Set eye position (camera position) uniform
+    //int myEyePosition = glGetUniformLocation(shader->program, "eye_position");
+    //glUniform3fv(myEyePosition, 1, glm::value_ptr(eyePosition));
+
+    // TODO(student): Set material property uniforms (shininess, kd, ks, object color)
+    int myMaterialShininess = glGetUniformLocation(shader->program, "material_shininess");
+    glUniform1i(myMaterialShininess, materialShininess);
+
+    int myMaterialKd = glGetUniformLocation(shader->program, "material_kd");  // the diffuse light constant
+    glUniform1f(myMaterialKd, materialKd);
+
+    int myMaterialKs = glGetUniformLocation(shader->program, "material_ks");  // the specular light constant
+    glUniform1f(myMaterialKs, materialKs);
+
+    int myObjectColor = glGetUniformLocation(shader->program, "object_color");
+    glUniform3fv(myObjectColor, 1, glm::value_ptr(color));
+
+    // Bind model matrix
+    GLint loc_model_matrix = glGetUniformLocation(shader->program, "Model");
+    glUniformMatrix4fv(loc_model_matrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+
+    // Bind view matrix
+    glm::mat4 viewMatrix = GetSceneCamera()->GetViewMatrix();
+    int loc_view_matrix = glGetUniformLocation(shader->program, "View");
+    glUniformMatrix4fv(loc_view_matrix, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+
+    // Bind projection matrix
+    glm::mat4 projectionMatrix = GetSceneCamera()->GetProjectionMatrix();
+    int loc_projection_matrix = glGetUniformLocation(shader->program, "Projection");
+    glUniformMatrix4fv(loc_projection_matrix, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+
+    // Draw the object
+    glBindVertexArray(mesh->GetBuffers()->m_VAO);
+    glDrawElements(mesh->GetDrawMode(), static_cast<int>(mesh->indices.size()), GL_UNSIGNED_INT, 0);
+}
+
 
 void Tema2::FrameEnd()
 {
@@ -424,6 +458,33 @@ void Tema2::RenderMesh(Mesh * mesh, Shader * shader, const glm::mat4 & modelMatr
     glUniformMatrix4fv(shader->loc_model_matrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
 
     mesh->Render();
+
+    //if (!mesh || !shader || !shader->GetProgramID())
+    //    return;
+
+    //// Render an object using the specified shader and the specified position
+    //glUseProgram(shader->program);
+
+    //// TODO(student): Get shader location for uniform mat4 "Model"
+    //int shader_model_loc = glGetUniformLocation(shader->GetProgramID(), "Model");
+
+    //// TODO(student): Set shader uniform "Model" to modelMatrix
+    //glUniformMatrix4fv(shader_model_loc, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+
+    //// TODO(student): Get shader location for uniform mat4 "View"
+    //int shader_view_loc = glGetUniformLocation(shader->GetProgramID(), "View");
+    //// TODO(student): Set shader uniform "View" to viewMatrix
+    //glm::mat4 viewMatrix = GetSceneCamera()->GetViewMatrix();
+    //glUniformMatrix4fv(shader_view_loc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+
+    //// TODO(student): Get shader location for uniform mat4 "Projection"
+    //int shader_projection_loc = glGetUniformLocation(shader->GetProgramID(), "Projection");
+    //// TODO(student): Set shader uniform "Projection" to projectionMatrix
+    //glm::mat4 projectionMatrix = GetSceneCamera()->GetProjectionMatrix();
+    //glUniformMatrix4fv(shader_projection_loc, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+    //// Draw the object
+    //glBindVertexArray(mesh->GetBuffers()->m_VAO);
+    //glDrawElements(mesh->GetDrawMode(), static_cast<int>(mesh->indices.size()), GL_UNSIGNED_INT, 0);
 }
 
 
