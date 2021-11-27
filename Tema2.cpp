@@ -49,9 +49,9 @@ void Tema2::Init()
     player.z = 0;
     player.lives = 1.0f;
     player.position = glm::vec3(0, 0, 0);
+    nrOfEnemies = 5;
     grid.resize(10);
-    //TODO fa generarea de labirint buna --> apoi in functie de labirnit creezi obiecte care vor forma labirintul in 
-    //joc pe casutele in care se afla obstacole
+
     for (int i = 0; i < 10; i++) {
         grid[i].resize(10);
         for (int j = 0; j < 10; j++) {
@@ -59,8 +59,9 @@ void Tema2::Init()
         }
     }
     srand(time(0));
-    int start = rand() % 10;
-    visitGrid(0, start, grid);
+    startY = 1 + rand() % 9;
+    startX = 0;
+    visitGrid(startX, startY, grid);
 
     for (int i = 0; i < 10; i++) {
         for (int j = 0; j < 10; j++) {
@@ -168,7 +169,14 @@ void Tema2::visitGrid(int x, int y, vector<vector<int>> &grid)
 
         if (isInBounds(x2, y2) && isInBounds(x2-dx, y2-dy)) {
             if (grid[x2][y2] == 2) {
-                grid[x2 - dx][y2 - dy] = 0;
+                if (nrOfEnemies != 0) { 
+                    // TODO fa-i sa apara mai rar
+                    grid[x2 - dx][y2 - dy] = rand() % 2;  
+                    nrOfEnemies -= grid[x2 - dx][y2 - dy];
+                }
+                else {
+                    grid[x2 - dx][y2 - dy] = 0;
+                }
                 visitGrid(x2, y2, grid);
             }
         }
@@ -288,7 +296,7 @@ void Tema2::Update(float deltaTimeSeconds)
                 glm::mat4 modelMatrix = glm::mat4(1);
                 modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.12f, -0.16, 0));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
-                RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
         }
         //picior stang
@@ -361,7 +369,7 @@ void Tema2::Update(float deltaTimeSeconds)
                 glm::mat4 modelMatrix = glm::mat4(1);
                 modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.415f, 0.16f, 0));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
-                RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);    
+                RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
@@ -383,6 +391,31 @@ void Tema2::Update(float deltaTimeSeconds)
                 modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(-0.415f, 0.f, 0));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
                 RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+            }
+        }
+    }
+
+    //labirint & inamici
+    {
+        for (int i = 0; i < GRID_SIZE; i++) 
+        {
+            for(int j = 0; j < GRID_SIZE; j++) 
+            {
+                //construiesc perete
+                // TODO de facut orientarea lui corecta
+                if (grid[i][j] == 2) {
+                    glm::mat4 modelMatrix = glm::mat4(1);
+                    modelMatrix = glm::translate(modelMatrix, glm::vec3(0 - i * 1.2f , 0.5f,0 - j * 1.2f));
+                    modelMatrix = glm::scale(modelMatrix, glm::vec3(1.2f));
+                    RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+                }
+                //construiesc inamicul
+                else if (grid[i][j] == 1) {
+                    glm::mat4 modelMatrix = glm::mat4(1);
+                    modelMatrix = glm::translate(modelMatrix, glm::vec3(0 - i * 1.2f, 0.5f, 0 - j * 1.2f));
+                    modelMatrix = glm::scale(modelMatrix, glm::vec3(0.4f));
+                    RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+                }
             }
         }
     }

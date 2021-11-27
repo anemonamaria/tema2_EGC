@@ -79,5 +79,9 @@ namespace m1
         unsigned int materialShininess;
         float materialKd;
         float materialKs;
+
+        int startX;
+        int startY;
+        int nrOfEnemies;
     };
 };   // namespace m1
