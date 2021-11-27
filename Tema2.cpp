@@ -51,26 +51,65 @@ void Tema2::Init()
     player.position = glm::vec3(0, 0, 0);
     nrOfEnemies = 5;
     grid.resize(10);
-
+    grid_dup.resize(12);
     for (int i = 0; i < 10; i++) {
         grid[i].resize(10);
         for (int j = 0; j < 10; j++) {
             grid[i][j] = 2;
         }
     }
+    for (int i = 0; i < 12; i++) {
+        grid_dup[i].resize(12);
+        for (int j = 0; j < 12; j++) {
+            grid_dup[i][j] = 2;
+        }
+    }
     srand(time(0));
-    startY = 1 + rand() % 9;
-    startX = 0;
+    startY = endY = 1 + rand() % 9;
+    startX = endX = 0;
     visitGrid(startX, startY, grid);
 
     for (int i = 0; i < 10; i++) {
         for (int j = 0; j < 10; j++) {
             if (grid[i][j] == -1)
                 grid[i][j] = 2;
-            printf("%d ", grid[i][j]);
+            grid_dup[i + 1][j + 1] = grid[i][j];
+        }
+    }
+    grid_dup[startX][startY + 1] = 0;
+    if (endY > endX) {
+        while (endY < 12) {
+            grid_dup[endX][endY++] = 0;
+        }
+    }
+    else
+    {
+        while (endX < 12) {
+            grid_dup[endX++][endY] = 0;
+        }
+
+    }
+    /*if (12 - endY < 6) {
+        while (endY < 12) {
+            grid_dup[endX][endY++] = 0;
+
+        }
+    }
+    else
+    {
+        while (endY > 0) {
+            grid_dup[endX][endY--] = 0;
+
+        }
+
+    }*/
+    for (int i = 0; i < 12; i++) {
+        for (int j = 0; j < 12; j++) {
+            printf("%d ", grid_dup[i][j]);
         }
         printf("\n");
     }
+    printf("\n%d %d\n", endX, endY);
     {
         Mesh* mesh = new Mesh("box");
         mesh->LoadMesh(PATH_JOIN(window->props.selfDir, RESOURCE_PATH::MODELS, "primitives"), "box.obj");
@@ -123,8 +162,8 @@ void Tema2::Init()
 
 bool Tema2::isInBounds(int x, int y) 
 {
-    if(x < 0 || x >= GRID_SIZE) return false;
-    if(y < 0 || y >= GRID_SIZE) return false;
+    if(x < 0 || x > GRID_SIZE - 1) return false;
+    if(y < 0 || y > GRID_SIZE - 1) return false;
     return true;
 }
 // -1 - celula nevizitata
@@ -177,6 +216,8 @@ void Tema2::visitGrid(int x, int y, vector<vector<int>> &grid)
                 else {
                     grid[x2 - dx][y2 - dy] = 0;
                 }
+                endX = x2 - dx;
+                endY = y2 - dy;
                 visitGrid(x2, y2, grid);
             }
         }
@@ -397,20 +438,20 @@ RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
 
     //labirint & inamici
     {
-        for (int i = 0; i < GRID_SIZE; i++) 
+        for (int i = 0; i < GRID_SIZE + 2; i++) 
         {
-            for(int j = 0; j < GRID_SIZE; j++) 
+            for(int j = 0; j < GRID_SIZE + 2; j++) 
             {
                 //construiesc perete
                 // TODO de facut orientarea lui corecta
-                if (grid[i][j] == 2) {
+                if (grid_dup[i][j] == 2) {
                     glm::mat4 modelMatrix = glm::mat4(1);
                     modelMatrix = glm::translate(modelMatrix, glm::vec3(0 - i * 1.2f , 0.5f,0 - j * 1.2f));
                     modelMatrix = glm::scale(modelMatrix, glm::vec3(1.2f));
                     RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
                 }
                 //construiesc inamicul
-                else if (grid[i][j] == 1) {
+                else if (grid_dup[i][j] == 1) {
                     glm::mat4 modelMatrix = glm::mat4(1);
                     modelMatrix = glm::translate(modelMatrix, glm::vec3(0 - i * 1.2f, 0.5f, 0 - j * 1.2f));
                     modelMatrix = glm::scale(modelMatrix, glm::vec3(0.4f));

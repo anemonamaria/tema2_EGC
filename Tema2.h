@@ -74,6 +74,7 @@ namespace m1
         int cursorX, cursorY;
 
         vector<vector<int>> grid;
+        vector<vector<int>> grid_dup;
 
         glm::vec3 lightPosition;
         unsigned int materialShininess;
@@ -83,5 +84,7 @@ namespace m1
         int startX;
         int startY;
         int nrOfEnemies;
+        int endX;
+        int endY;
     };
 };   // namespace m1
