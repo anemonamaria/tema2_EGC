@@ -38,7 +38,7 @@ void Tema2::Init()
     top = 20.f;
     fov = 40.f;
     camera = new implemented::Camera_hw();
-    camera->Set(glm::vec3(0, 2, 3.5f), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
+    // camera->Set(glm::vec3(0, 2, 3.5f), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
 
     projectile.x = projectile.y = projectile.z = 0;
     projectile.angle = player.angle = 0.0;
@@ -89,27 +89,17 @@ void Tema2::Init()
         }
 
     }
-    /*if (12 - endY < 6) {
-        while (endY < 12) {
-            grid_dup[endX][endY++] = 0;
 
-        }
-    }
-    else
-    {
-        while (endY > 0) {
-            grid_dup[endX][endY--] = 0;
+    camera->Set(glm::vec3(7 - startX * 1.2f, 0.5f, 7 - (startY + 1) * 1.2f), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
 
-        }
-
-    }*/
     for (int i = 0; i < 12; i++) {
         for (int j = 0; j < 12; j++) {
             printf("%d ", grid_dup[i][j]);
         }
         printf("\n");
     }
-    printf("\n%d %d\n", endX, endY);
+    printf("\nstart %d %d\n", startX, startY);
+    printf("\nend %d %d\n", endX, endY);
     {
         Mesh* mesh = new Mesh("box");
         mesh->LoadMesh(PATH_JOIN(window->props.selfDir, RESOURCE_PATH::MODELS, "primitives"), "box.obj");
@@ -329,28 +319,28 @@ void Tema2::Update(float deltaTimeSeconds)
         {
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
-                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.12f, -0.36f, 0));
+                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.f, -0.36f, 0.12f));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
                 RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
-                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.12f, -0.16, 0));
+                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.f, -0.16, 0.12f));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
-RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+                RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
         }
         //picior stang
         {
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
-                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(-0.12f, -0.36f, 0));
+                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.f, -0.36f, -0.12f));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
                 RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
-                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(-0.12f, -0.16, 0));
+                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.f, -0.16, -0.12f));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
                 RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
@@ -365,13 +355,13 @@ RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
-                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.2f, 0.f, 0));
+                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.f, 0.f, 0.2f));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
                 RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
-                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(-0.2f, 0.f, 0));
+                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.f, 0.f, -0.2f));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
                 RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
@@ -384,13 +374,13 @@ RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
-                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.2f, 0.16f, 0));
+                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.f, 0.16f, 0.2f));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
                 RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
-                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(-0.2f, 0.16f, 0));
+                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.f, 0.16f, -0.2f));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
                 RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
@@ -408,13 +398,13 @@ RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
         {
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
-                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.415f, 0.16f, 0));
+                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.f, 0.16f, 0.415f));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
                 RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
-                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.415f, 0.f, 0));
+                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.f, 0.f, 0.415f));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
                 RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
@@ -423,13 +413,13 @@ RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
         {
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
-                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(-0.415f, 0.16f, 0));
+                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.f, 0.16f, -0.415f));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
                 RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
-                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(-0.415f, 0.f, 0));
+                modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.f, 0.f, -0.415f));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
                 RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             }
@@ -443,17 +433,16 @@ RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
             for(int j = 0; j < GRID_SIZE + 2; j++) 
             {
                 //construiesc perete
-                // TODO de facut orientarea lui corecta
                 if (grid_dup[i][j] == 2) {
                     glm::mat4 modelMatrix = glm::mat4(1);
-                    modelMatrix = glm::translate(modelMatrix, glm::vec3(0 - i * 1.2f , 0.5f,0 - j * 1.2f));
+                    modelMatrix = glm::translate(modelMatrix, glm::vec3(7 - i * 1.2f , 0.5f, 7 - j * 1.2f));
                     modelMatrix = glm::scale(modelMatrix, glm::vec3(1.2f));
                     RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
                 }
                 //construiesc inamicul
                 else if (grid_dup[i][j] == 1) {
                     glm::mat4 modelMatrix = glm::mat4(1);
-                    modelMatrix = glm::translate(modelMatrix, glm::vec3(0 - i * 1.2f, 0.5f, 0 - j * 1.2f));
+                    modelMatrix = glm::translate(modelMatrix, glm::vec3(7 - i * 1.2f, 0.5f, 7 - j * 1.2f));
                     modelMatrix = glm::scale(modelMatrix, glm::vec3(0.4f));
                     RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
                 }
@@ -591,7 +580,11 @@ void Tema2::OnInputUpdate(float deltaTime, int mods)
     }
 
     if (window->KeyHold(GLFW_KEY_S)) {
-        camera->TranslateForward(-cameraSpeed);
+        printf("%f \n ", camera->GetTargetPosition().y);
+        if(camera->GetTargetPosition().y >= 0.45)
+            camera->TranslateForward(-cameraSpeed);
+        else
+            camera->TranslateForward(cameraSpeed);
     }
 
     if (window->KeyHold(GLFW_KEY_D)) {

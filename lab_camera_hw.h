@@ -15,7 +15,7 @@ namespace implemented
             forward     = glm::vec3(0, 0, -1.5);
             up          = glm::vec3(0, 1, 0);
             right       = glm::vec3(1, 0, 0);
-            distanceToTarget = 2;
+            distanceToTarget = 1.5;
         }
 
         Camera_hw(const glm::vec3 &position, const glm::vec3 &center, const glm::vec3 &up)
