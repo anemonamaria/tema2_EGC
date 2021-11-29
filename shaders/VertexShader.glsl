@@ -11,6 +11,7 @@ layout(location = 3) in vec3 v_color;
 uniform mat4 Model;
 uniform mat4 View;
 uniform mat4 Projection;
+uniform vec3 object_color;
 
 // Output
 // TODO(student): Output values to fragment shader
@@ -25,7 +26,7 @@ void main()
     frag_position	= v_position;
 	frag_normal		= v_normal;
 	frag_texture	= v_texture;
-	frag_color		= v_color;
+	frag_color		= object_color;
     // TODO(student): Compute gl_Position
 	gl_Position = Projection * View * Model * vec4(frag_position, 1.0f);
 }

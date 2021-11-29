@@ -71,10 +71,19 @@ namespace m1
             float lives;
         } player;
 
+        struct enemy_t {
+            int x;
+            int y;
+            int z;
+        } enemy;
+
         int cursorX, cursorY;
 
         vector<vector<int>> grid;
         vector<vector<int>> grid_dup;
+        vector<enemy_t> enemies;
+        vector<enemy_t> enemies_dup;
+
 
         glm::vec3 lightPosition;
         unsigned int materialShininess;
@@ -86,5 +95,6 @@ namespace m1
         int nrOfEnemies;
         int endX;
         int endY;
+        int counter;
     };
 };   // namespace m1
