@@ -42,6 +42,7 @@ namespace m1
 
     protected:
         implemented::Camera_hw* camera;
+        implemented::Camera_hw* camera_FP;
         glm::mat4 projectionMatrix;
         bool renderCameraTarget;
 
@@ -64,9 +65,9 @@ namespace m1
 
         struct player_t {
             float angle;
-            int x;
-            int y;
-            int z;
+            float x;
+            float y;
+            float z;
             glm::vec3 position;
             float rotation;
             float lives;
@@ -97,5 +98,6 @@ namespace m1
         int endX;
         int endY;
         int counter;
+        GLenum cullFace;
     };
 };   // namespace m1
