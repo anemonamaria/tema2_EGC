@@ -68,13 +68,14 @@ namespace m1
             int y;
             int z;
             glm::vec3 position;
+            float rotation;
             float lives;
         } player;
 
         struct enemy_t {
-            int x;
-            int y;
-            int z;
+            float x;
+            float y;
+            float z;
         } enemy;
 
         int cursorX, cursorY;

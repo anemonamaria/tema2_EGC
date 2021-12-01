@@ -79,9 +79,12 @@ namespace implemented
         {
             // TODO(student): Compute the new `forward` and `up` vectors.
             // Don't forget to normalize the vectors! Use `glm::rotate()`.
+            distanceToTarget = 0;
             glm::vec4 aux = glm::rotate(glm::mat4(1.f), angle, right) * glm::vec4(forward, 0);
             forward = glm::normalize(glm::vec3(aux));
             up = glm::cross(right, forward);
+            distanceToTarget = 1.5;
+
         }
 
         void RotateFirstPerson_OY(float angle)
@@ -89,6 +92,7 @@ namespace implemented
             // TODO(student): Compute the new `forward`, `up` and `right`
             // vectors. Use `glm::rotate()`. Don't forget to normalize the
             // vectors!
+
             glm::vec4 aux = glm::rotate(glm::mat4(1.f), angle, glm::vec3(0, 1, 0)) * glm::vec4(forward, 0);
             forward = glm::normalize(glm::vec3(aux));
 
@@ -97,6 +101,7 @@ namespace implemented
 
             up = glm::cross(right, forward);
 
+
         }
 
         void RotateFirstPerson_OZ(float angle)
@@ -104,6 +109,7 @@ namespace implemented
             // TODO(student): Compute the new `right` and `up`. This time,
             // `forward` stays the same. Use `glm::rotate()`. Don't forget
             // to normalize the vectors!
+
             glm::vec4 aux = glm::rotate(glm::mat4(1.f), angle, glm::vec3(0, 1, 0)) * glm::vec4(right, 1);
             right = glm::normalize(glm::vec3(aux));
 
@@ -111,6 +117,7 @@ namespace implemented
             forward = glm::normalize(glm::vec3(aux));
 
             up = glm::cross(right, forward);
+
 
         }
 

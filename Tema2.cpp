@@ -45,6 +45,7 @@ void Tema2::Init()
     player.x = 0;
     player.y = 0;
     player.z = 0;
+    player.rotation = 0.0f;
     player.lives = 1.0f;
     player.position = glm::vec3(0, 0, 0);
     nrOfEnemies = 5;
@@ -122,19 +123,19 @@ void Tema2::Init()
 
     {
         Mesh* mesh = new Mesh("healthbar");
-        mesh = CreateMySquare("healthbar", glm::vec3(3.2, 2.3, 0), 1, 0.15, glm::vec3(0, 1, 0), true);
+        mesh = CreateMySquare("healthbar", glm::vec3(2.2, 1.3, 0), 1, 0.15, glm::vec3(0, 1, 0), true);
         AddMeshToList(mesh);
     }
 
     {
         Mesh* mesh = new Mesh("outline");
-        mesh = CreateMySquare("outline", glm::vec3(3.2, 2.3, 0), 1, 0.15, glm::vec3(0, 1, 0), false);
+        mesh = CreateMySquare("outline", glm::vec3(2.2, 1.3, 0), 1, 0.15, glm::vec3(0, 1, 0), false);
         AddMeshToList(mesh);
     }
 
     {
         Mesh* mesh = new Mesh("time");
-        mesh = CreateMySquare("time", glm::vec3(3.2, 1.9, 0), 1, 0.15, glm::vec3(0, 1, 0), true);
+        mesh = CreateMySquare("time", glm::vec3(2.2, 0.9, 0), 1, 0.15, glm::vec3(0, 1, 0), true);
         AddMeshToList(mesh);
     }
 
@@ -146,14 +147,7 @@ void Tema2::Init()
         player_shader->CreateAndLink();
         shaders[player_shader->GetName()] = player_shader;
     }
-    ////bar shader
-    //{
-    //    Shader* player_shader = new Shader("BarShader");
-    //    player_shader->AddShader(PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "Tema2", "shaders", "VertexShader_bar.glsl"), GL_VERTEX_SHADER);
-    //    player_shader->AddShader(PATH_JOIN(window->props.selfDir, SOURCE_PATH::M1, "Tema2", "shaders", "FragmentShader.glsl"), GL_FRAGMENT_SHADER);
-    //    player_shader->CreateAndLink();
-    //    shaders[player_shader->GetName()] = player_shader;
-    //}
+    // TODO sterge shadersul vertexshader_bar
     projectionMatrix = glm::perspective(RADIANS(60), window->props.aspectRatio, 0.01f, 200.0f);
 
 }
@@ -209,7 +203,6 @@ void Tema2::visitGrid(int x, int y, vector<vector<int>> &grid)
             if (grid[x2][y2] == 2) {
                 if (nrOfEnemies != 0) {
                     // TODO fa-i sa apara mai rar
-                    //printf("daaaaaaaaaaaa\n");
                     grid[x2 - dx][y2 - dy] = 1;// rand() % 2;
                     nrOfEnemies -= grid[x2 - dx][y2 - dy];
                 }
@@ -272,7 +265,8 @@ void Tema2::Update(float deltaTimeSeconds)
         glm::mat4 modelMatrix = glm::mat4(1);
         modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(projectile.x, projectile.y, projectile.z)); //  +glm::vec3(0.5f, 0, 0));
         modelMatrix = glm::scale(modelMatrix, glm::vec3(0.1f));
-        RenderMesh(meshes["sphere"], shaders["VertexNormal"], modelMatrix);
+        MyRenderSimpleMesh(meshes["sphere"], shaders["PlayerShader"], modelMatrix, glm::vec3(0.058, 0.172, 0.403));
+
     }
 
     //podea
@@ -301,27 +295,33 @@ void Tema2::Update(float deltaTimeSeconds)
         glm::mat4 modelMatrix = glm::mat4(1);
         modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(0, 0, 0));
         modelMatrix = glm::scale(modelMatrix, glm::vec3(0.4f));  // TODO de facut in functie de player.lives
-        RenderMesh(meshes["healthbar"], shaders["VertexNormal"], modelMatrix); // todo crapa?!
+        modelMatrix = glm::rotate(modelMatrix, RADIANS(90.f), glm::vec3(0, 1, 0));
+        MyRenderSimpleMesh(meshes["healthbar"], shaders["PlayerShader"], modelMatrix, glm::vec3(0.921, 0.901, 0.270));
     }
     //outline 
     {
         glm::mat4 modelMatrix = glm::mat4(1);
         modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(0, 0, 0));
         modelMatrix = glm::scale(modelMatrix, glm::vec3(0.4f));
-        RenderMesh(meshes["outline"], shaders["VertexNormal"], modelMatrix);
+        modelMatrix = glm::rotate(modelMatrix, RADIANS(90.f), glm::vec3(0, 1, 0));
+        MyRenderSimpleMesh(meshes["outline"], shaders["PlayerShader"], modelMatrix, glm::vec3(0.690, 0.670, 0.090));
+
     }
     //time 
     {
         glm::mat4 modelMatrix = glm::mat4(1);
         modelMatrix = glm::translate(modelMatrix, camera->GetTargetPosition() + glm::vec3(0, 0, 0));
         modelMatrix = glm::scale(modelMatrix, glm::vec3(0.4f-deltaTimeSeconds)); // TODO de facut asta sa scaleze cum trebuie
-        RenderMesh(meshes["time"], shaders["VertexNormal"], modelMatrix);
+        modelMatrix = glm::rotate(modelMatrix, RADIANS(90.f), glm::vec3(0, 1, 0));
+        MyRenderSimpleMesh(meshes["time"], shaders["PlayerShader"], modelMatrix, glm::vec3(0.921, 0.901, 0.270));
+
     }
     //player
     player.x = camera->GetTargetPosition().x;
     player.y = camera->GetTargetPosition().y;  // TODO de facut sa se miste drept
     player.z = camera->GetTargetPosition().z;
     player.position = camera->GetTargetPosition();
+    // printf("%f\n", player.position.x);
     if (renderCameraTarget)
     {
         //picior drept
@@ -330,12 +330,14 @@ void Tema2::Update(float deltaTimeSeconds)
                 glm::mat4 modelMatrix = glm::mat4(1);
                 modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.f, -0.36f, 0.12f));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+                modelMatrix = glm::rotate(modelMatrix, RADIANS(player.rotation), glm::vec3(0, 1, 0));
                 MyRenderSimpleMesh(meshes["box"], shaders["PlayerShader"], modelMatrix, glm::vec3(0.207, 0.043, 0.250));
             }
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
                 modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.f, -0.16, 0.12f));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+                modelMatrix = glm::rotate(modelMatrix, RADIANS(player.rotation), glm::vec3(0, 1, 0));
                 MyRenderSimpleMesh(meshes["box"], shaders["PlayerShader"], modelMatrix, glm::vec3(0.207, 0.043, 0.250));
             }
         }
@@ -345,12 +347,14 @@ void Tema2::Update(float deltaTimeSeconds)
                 glm::mat4 modelMatrix = glm::mat4(1);
                 modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.f, -0.36f, -0.12f));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+                modelMatrix = glm::rotate(modelMatrix, RADIANS(player.rotation), glm::vec3(0, 1, 0));
                 MyRenderSimpleMesh(meshes["box"], shaders["PlayerShader"], modelMatrix, glm::vec3(0.207, 0.043, 0.250));
             }
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
                 modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.f, -0.16, -0.12f));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+                modelMatrix = glm::rotate(modelMatrix, RADIANS(player.rotation), glm::vec3(0, 1, 0));
                 MyRenderSimpleMesh(meshes["box"], shaders["PlayerShader"], modelMatrix, glm::vec3(0.207, 0.043, 0.250));
             }
         }
@@ -360,18 +364,21 @@ void Tema2::Update(float deltaTimeSeconds)
                 glm::mat4 modelMatrix = glm::mat4(1);
                 modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0, 0.05f, 0));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+                modelMatrix = glm::rotate(modelMatrix, RADIANS(player.rotation), glm::vec3(0, 1, 0));
                 MyRenderSimpleMesh(meshes["box"], shaders["PlayerShader"], modelMatrix, glm::vec3(0.933, 0.6, 0.627));
             }
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
                 modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.f, 0.05f, 0.2f));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+                modelMatrix = glm::rotate(modelMatrix, RADIANS(player.rotation), glm::vec3(0, 1, 0));
                 MyRenderSimpleMesh(meshes["box"], shaders["PlayerShader"], modelMatrix, glm::vec3(0.933, 0.6, 0.627));
             }
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
                 modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.f, 0.05f, -0.2f));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+                modelMatrix = glm::rotate(modelMatrix, RADIANS(player.rotation), glm::vec3(0, 1, 0));
                 MyRenderSimpleMesh(meshes["box"], shaders["PlayerShader"], modelMatrix, glm::vec3(0.933, 0.6, 0.627));
             }
 
@@ -379,18 +386,21 @@ void Tema2::Update(float deltaTimeSeconds)
                 glm::mat4 modelMatrix = glm::mat4(1);
                 modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0, 0.22f, 0));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+                modelMatrix = glm::rotate(modelMatrix, RADIANS(player.rotation), glm::vec3(0, 1, 0));
                 MyRenderSimpleMesh(meshes["box"], shaders["PlayerShader"], modelMatrix, glm::vec3(0.933, 0.6, 0.627));
             }
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
                 modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.f, 0.22f, 0.2f));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+                modelMatrix = glm::rotate(modelMatrix, RADIANS(player.rotation), glm::vec3(0, 1, 0));
                 MyRenderSimpleMesh(meshes["box"], shaders["PlayerShader"], modelMatrix, glm::vec3(0.933, 0.6, 0.627));
             }
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
                 modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.f, 0.22f, -0.2f));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+                modelMatrix = glm::rotate(modelMatrix, RADIANS(player.rotation), glm::vec3(0, 1, 0));
                 MyRenderSimpleMesh(meshes["box"], shaders["PlayerShader"], modelMatrix, glm::vec3(0.933, 0.6, 0.627));
             }
         }
@@ -410,12 +420,14 @@ void Tema2::Update(float deltaTimeSeconds)
                 glm::mat4 modelMatrix = glm::mat4(1);
                 modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.f, 0.22f, 0.415f));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+                modelMatrix = glm::rotate(modelMatrix, RADIANS(player.rotation), glm::vec3(0, 1, 0));
                 MyRenderSimpleMesh(meshes["box"], shaders["PlayerShader"], modelMatrix, glm::vec3(0.933, 0.6, 0.627));
             }
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
                 modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.f, 0.02f, 0.415f));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+                modelMatrix = glm::rotate(modelMatrix, RADIANS(player.rotation), glm::vec3(0, 1, 0));
                 MyRenderSimpleMesh(meshes["box"], shaders["PlayerShader"], modelMatrix, glm::vec3(0.949, 0.866, 0.756));
             }
         }
@@ -425,12 +437,14 @@ void Tema2::Update(float deltaTimeSeconds)
                 glm::mat4 modelMatrix = glm::mat4(1);
                 modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.f, 0.22f, -0.415f));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+                modelMatrix = glm::rotate(modelMatrix, RADIANS(player.rotation), glm::vec3(0, 1, 0));
                 MyRenderSimpleMesh(meshes["box"], shaders["PlayerShader"], modelMatrix, glm::vec3(0.933, 0.6, 0.627));
             }
             {
                 glm::mat4 modelMatrix = glm::mat4(1);
                 modelMatrix = glm::translate(modelMatrix, player.position + glm::vec3(0.f, 0.02f, -0.415f));
                 modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+                modelMatrix = glm::rotate(modelMatrix, RADIANS(player.rotation), glm::vec3(0, 1, 0));
                 MyRenderSimpleMesh(meshes["box"], shaders["PlayerShader"], modelMatrix, glm::vec3(0.949, 0.866, 0.756));
             }
         }
@@ -458,7 +472,7 @@ void Tema2::Update(float deltaTimeSeconds)
                     enemies_dup[aux].x = 7 - i * 1.2f;
                     enemies_dup[aux].z = 7 - j * 1.2f;
                    
-                    modelMatrix = glm::translate(modelMatrix, glm::vec3(7 - i * 1.2f, 0.5f, 7 - j * 1.2f));
+                    modelMatrix = glm::translate(modelMatrix, glm::vec3(enemies[aux].x, 0.5f, enemies[aux].x));
                     modelMatrix = glm::scale(modelMatrix, glm::vec3(0.4f));
                     aux = aux + 1;
                     MyRenderSimpleMesh(meshes["box"], shaders["PlayerShader"], modelMatrix, glm::vec3(0, 0.188, 0.247));
@@ -468,20 +482,25 @@ void Tema2::Update(float deltaTimeSeconds)
         counter = aux;
     }
 
-    //// enemies movement 
-    // TODO make this work
-    //{
-    //    for (int i = 0; i < counter; i++) {
-    //        if (enemies[i].x < enemies_dup[i].x + 1.f)
-    //            enemies[i].x += deltaTimeSeconds * 10;
-    //        if (enemies[i].x > enemies_dup[i].x - 1.f)
-    //            enemies[i].x -= deltaTimeSeconds * 10;
-    //        if (enemies[i].z < enemies_dup[i].z + 1.f)
-    //            enemies[i].z += deltaTimeSeconds * 10;
-    //        if (enemies[i].z > enemies_dup[i].z - 1.f)
-    //            enemies[i].z -= deltaTimeSeconds * 10;
-    //    }
-    //}
+    // enemies movement 
+     // TODO make this work, intra dar de ce nu se modifica?!
+    {
+        for (int i = 0; i < counter; i++) {
+            if(i == 0)
+                printf("%f %f %f %f\n", enemies[i].x, enemies_dup[i].x, enemies[i].z, enemies_dup[i].x);
+            if (enemies[i].x < enemies_dup[i].x + 1.f) {
+                enemies[i].x += deltaTimeSeconds * 10;
+                 //printf("%f aaaaaa\n", enemies[i].x); //aici se schimba dar de ce nu retine ?
+              //  printf("intri?");
+            }
+            else if (enemies[i].x > enemies_dup[i].x - 1.f)
+                enemies[i].x -= deltaTimeSeconds * 100;
+            if (enemies[i].z < enemies_dup[i].z + 1.f)
+                enemies[i].z += deltaTimeSeconds * 100;
+            else if (enemies[i].z > enemies_dup[i].z - 1.f)
+                enemies[i].z -= deltaTimeSeconds * 100;
+        }
+    }
 }
 
 void Tema2::MyRenderSimpleMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, const glm::vec3& color)
@@ -540,33 +559,6 @@ void Tema2::RenderMesh(Mesh * mesh, Shader * shader, const glm::mat4 & modelMatr
     glUniformMatrix4fv(transf_matrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
 
     mesh->Render();
-
-    //if (!mesh || !shader || !shader->GetProgramID())
-    //    return;
-
-    //// Render an object using the specified shader and the specified position
-    //glUseProgram(shader->program);
-
-    //// TODO(student): Get shader location for uniform mat4 "Model"
-    //int shader_model_loc = glGetUniformLocation(shader->GetProgramID(), "Model");
-
-    //// TODO(student): Set shader uniform "Model" to modelMatrix
-    //glUniformMatrix4fv(shader_model_loc, 1, GL_FALSE, glm::value_ptr(modelMatrix));
-
-    //// TODO(student): Get shader location for uniform mat4 "View"
-    //int shader_view_loc = glGetUniformLocation(shader->GetProgramID(), "View");
-    //// TODO(student): Set shader uniform "View" to viewMatrix
-    //glm::mat4 viewMatrix = GetSceneCamera()->GetViewMatrix();
-    //glUniformMatrix4fv(shader_view_loc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
-
-    //// TODO(student): Get shader location for uniform mat4 "Projection"
-    //int shader_projection_loc = glGetUniformLocation(shader->GetProgramID(), "Projection");
-    //// TODO(student): Set shader uniform "Projection" to projectionMatrix
-    //glm::mat4 projectionMatrix = GetSceneCamera()->GetProjectionMatrix();
-    //glUniformMatrix4fv(shader_projection_loc, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
-    //// Draw the object
-    //glBindVertexArray(mesh->GetBuffers()->m_VAO);
-    //glDrawElements(mesh->GetDrawMode(), static_cast<int>(mesh->indices.size()), GL_UNSIGNED_INT, 0);
 }
 
 
@@ -589,19 +581,23 @@ void Tema2::OnInputUpdate(float deltaTime, int mods)
 {
     // move the camera only if MOUSE_RIGHT button is pressed
     float cameraSpeed = 2.0f * deltaTime;
-
+    // TODO de facut rotiera buna a jucatorului
     if (window->KeyHold(GLFW_KEY_W)) {
+        player.rotation = 0.0f;
         if (camera->GetTargetPosition().y >= 0.45)
             camera->TranslateForward(cameraSpeed);
         else
             camera->TranslateForward(-cameraSpeed);
+
     }
 
     if (window->KeyHold(GLFW_KEY_A)) {
+        player.rotation = 90.0f;
         camera->TranslateRight(-cameraSpeed);
     }
 
     if (window->KeyHold(GLFW_KEY_S)) {
+        player.rotation = 0.0f;
         if(camera->GetTargetPosition().y >= 0.45)
             camera->TranslateForward(-cameraSpeed);
         else
@@ -609,6 +605,7 @@ void Tema2::OnInputUpdate(float deltaTime, int mods)
     }
 
     if (window->KeyHold(GLFW_KEY_D)) {
+        player.rotation = -90.0f;
         camera->TranslateRight(cameraSpeed);
     }
 
@@ -655,13 +652,10 @@ void Tema2::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY)
             renderCameraTarget = false;
             camera->RotateFirstPerson_OX(sensivityOX * -deltaY);
             camera->RotateFirstPerson_OY(sensivityOY * -deltaX);
-            /*if (projectile.shot == false && window->KeyHold(GLFW_KEY_SPACE))
-            {
-                projectile.shot = true;
-            }*/
-
+          
+            // TODO fa firstperson care intra in corp.. trebuie implementata alta camera?
         }
-       renderCameraTarget = true;
+        renderCameraTarget = true;   
 }
 
 void Tema2::setPlayerAngle() {
