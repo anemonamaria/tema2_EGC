@@ -37,7 +37,7 @@ namespace m1
         void Tema2::MyRenderSimpleMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, const glm::vec3& color);
         bool Tema2::isInBounds(int x, int y);
         void Tema2::visitGrid(int x, int y, vector<vector<int>> &grid);
-
+        bool Tema2::checkProjectileEnemyCollision(int i);
 
 
     protected:
@@ -77,6 +77,7 @@ namespace m1
             float x;
             float y;
             float z;
+            bool onScreen;
         } enemy;
 
         int cursorX, cursorY;
@@ -99,5 +100,8 @@ namespace m1
         int endY;
         int counter;
         GLenum cullFace;
+        float myTime;
+        float myLife;
+        //int counter;
     };
 };   // namespace m1

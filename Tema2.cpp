@@ -51,6 +51,9 @@ void Tema2::Init()
     player.position = glm::vec3(0, 0, 0);
     nrOfEnemies = 5;
     counter = 0;
+    myTime = 0.5f;
+    myLife = 0.5f;
+
     grid.resize(GRID_SIZE);
     grid_dup.resize(GRID_SIZE + 2);
     for (int i = 0; i < GRID_SIZE; i++) {
@@ -69,10 +72,10 @@ void Tema2::Init()
     startY = endY = 1 + rand() % 9;
     startX = endX = 0;
     visitGrid(startX, startY, grid);
-    //printf("%d\n", nrOfEnemies);
     enemies.resize(5 - nrOfEnemies);
     enemies_dup.resize(5 - nrOfEnemies);
 
+    
     for (int i = 0; i < GRID_SIZE; i++) {
         for (int j = 0; j < GRID_SIZE; j++) {
             if (grid[i][j] == -1)
@@ -93,21 +96,41 @@ void Tema2::Init()
         }
 
     }
+    //initializez inamicii
+    int aux = 0;
+    for (int i = 0; i < GRID_SIZE + 2; i++)
+    {
+        for (int j = 0; j < GRID_SIZE + 2; j++)
+        {
+            if (grid_dup[i][j] == 1) {
+                enemies[aux].x = 7 - i * 1.2f;
+                enemies[aux].z = 7 - j * 1.2f;
+                enemies_dup[aux].x = 7 - i * 1.2f;
+                enemies_dup[aux].z = 7 - j * 1.2f;
+                enemies[aux].onScreen = true;
+                aux = aux + 1;
+            }
+        }
+    }
+
+    counter = aux;
     //TODO scoate jucatorul din perete
     player.x = 7 - startX * 1.2f;
     player.y = 0.5f;
     player.z = 7 - (startY + 1) * 1.2f;
     // TODO fa camera sa urmareasca cum trebuie jucatorul
-    camera->Set(glm::vec3(player.x - 1.0f, player.y + 1.0f, player.z - 1.0f), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
-
-    /*for (int i = 0; i < GRID_SIZE + 2; i++) {
+    camera->Set(glm::vec3(player.x + 1.5f, player.y + 1.f, player.z), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
+    printf("Hello! Mult succes in Survival Maze!\n");
+    printf("2 - perete \n1 - inamic \n0 - liber \nLabirnitul: \n");
+    for (int i = 0; i < GRID_SIZE + 2; i++) {
         for (int j = 0; j < GRID_SIZE + 2; j++) {
             printf("%d ", grid_dup[i][j]);
         }
         printf("\n");
     }
-    printf("\nstart %d %d\n", startX, startY);
+    /*printf("\nstart %d %d\n", startX, startY);
     printf("\nend %d %d\n", endX, endY);*/
+    //meshes
     {
         Mesh* mesh = new Mesh("box");
         mesh->LoadMesh(PATH_JOIN(window->props.selfDir, RESOURCE_PATH::MODELS, "primitives"), "box.obj");
@@ -128,19 +151,19 @@ void Tema2::Init()
 
     {
         Mesh* mesh = new Mesh("healthbar");
-        mesh = CreateMySquare("healthbar", glm::vec3(2.2, 1.3, 0), 1, 0.15, glm::vec3(0, 1, 0), true);
+        mesh = CreateMySquare("healthbar", glm::vec3(0, 0, 0), 1, 0.15, glm::vec3(0, 1, 0), true);
         AddMeshToList(mesh);
     }
 
     {
         Mesh* mesh = new Mesh("outline");
-        mesh = CreateMySquare("outline", glm::vec3(2.2, 1.3, 0), 1, 0.15, glm::vec3(0, 1, 0), false);
+        mesh = CreateMySquare("outline", glm::vec3(0, 0, 0), 1, 0.15, glm::vec3(0, 1, 0), false);
         AddMeshToList(mesh);
     }
 
     {
         Mesh* mesh = new Mesh("time");
-        mesh = CreateMySquare("time", glm::vec3(2.2, 0.9, 0), 1, 0.15, glm::vec3(0, 1, 0), true);
+        mesh = CreateMySquare("time", glm::vec3(0, 0, 0), 1, 0.15, glm::vec3(0, 1, 0), true);
         AddMeshToList(mesh);
     }
 
@@ -206,8 +229,7 @@ void Tema2::visitGrid(int x, int y, vector<vector<int>> &grid)
 
         if (isInBounds(x2, y2) && isInBounds(x2-dx, y2-dy)) {
             if (grid[x2][y2] == 2) {
-                if (nrOfEnemies != 0) {
-                    // TODO fa-i sa apara mai rar
+                if (nrOfEnemies != 0 && (x2 + y2) % 4 >= 2) {
                     grid[x2 - dx][y2 - dy] = 1;
                     nrOfEnemies -= grid[x2 - dx][y2 - dy];
                 }
@@ -288,8 +310,7 @@ void Tema2::Update(float deltaTimeSeconds)
     //projectile movement
     if (projectile.shot == true) 
     {
-         //TODO aici de facut sa se orientezde in functie de orientarea jucatorului -> de pus conditie
-        // in functie de orientare sa se modifice x, z cu + sau -
+         //TODO aici de facut sa se orientezde in functie de orientarea jucatorului
         projectile.x -= deltaTimeSeconds * 59;
 
         projectile.lenght = sqrt((double)(projectile.x) * (projectile.x));
@@ -301,16 +322,20 @@ void Tema2::Update(float deltaTimeSeconds)
     //healthbar 
     {
         glm::mat4 modelMatrix = glm::mat4(1);
-        modelMatrix = glm::translate(modelMatrix, glm::vec3(player.x, player.y, player.z) + glm::vec3(0, 0, 0));
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.4f));  // TODO de facut in functie de player.lives
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(player.x, player.y, player.z) + glm::vec3(0, 0.65f, 0));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(myLife));  // TODO de facut in functie de player.lives
         modelMatrix = glm::rotate(modelMatrix, RADIANS(90.f), glm::vec3(0, 1, 0));
         MyRenderSimpleMesh(meshes["healthbar"], shaders["PlayerShader"], modelMatrix, glm::vec3(0.921, 0.901, 0.270));
+        if (myLife <= 0) {
+            printf("You have lost! GAME OVER!\n");
+            exit(0);
+        }
     }
-    //outline 
+    //outline healthbar
     {
         glm::mat4 modelMatrix = glm::mat4(1);
-        modelMatrix = glm::translate(modelMatrix, glm::vec3(player.x, player.y, player.z) + glm::vec3(0, 0, 0));
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.4f));
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(player.x, player.y, player.z) + glm::vec3(0, 0.65f, 0));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f));
         modelMatrix = glm::rotate(modelMatrix, RADIANS(90.f), glm::vec3(0, 1, 0));
         MyRenderSimpleMesh(meshes["outline"], shaders["PlayerShader"], modelMatrix, glm::vec3(0.690, 0.670, 0.090));
 
@@ -318,10 +343,23 @@ void Tema2::Update(float deltaTimeSeconds)
     //time 
     {
         glm::mat4 modelMatrix = glm::mat4(1);
-        modelMatrix = glm::translate(modelMatrix, glm::vec3(player.x, player.y, player.z) + glm::vec3(0, 0, 0));
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.4f-deltaTimeSeconds)); // TODO de facut asta sa scaleze cum trebuie
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(player.x, player.y, player.z) + glm::vec3(0, 0.75f, 0));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(myTime)); // TODO de facut asta sa scaleze cum trebuie
+        myTime -= deltaTimeSeconds / 100;
         modelMatrix = glm::rotate(modelMatrix, RADIANS(90.f), glm::vec3(0, 1, 0));
         MyRenderSimpleMesh(meshes["time"], shaders["PlayerShader"], modelMatrix, glm::vec3(0.921, 0.901, 0.270));
+        if (myTime <= 0) {
+            printf("You have no more time to escape. GAME OVER!\n");
+            exit(0);
+        }
+    }
+    //outline time
+    {
+        glm::mat4 modelMatrix = glm::mat4(1);
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(player.x, player.y, player.z) + glm::vec3(0, 0.75f, 0));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f));
+        modelMatrix = glm::rotate(modelMatrix, RADIANS(90.f), glm::vec3(0, 1, 0));
+        MyRenderSimpleMesh(meshes["outline"], shaders["PlayerShader"], modelMatrix, glm::vec3(0.690, 0.670, 0.090));
 
     }
     //player
@@ -467,44 +505,62 @@ void Tema2::Update(float deltaTimeSeconds)
                     modelMatrix = glm::scale(modelMatrix, glm::vec3(1.2f));
                     MyRenderSimpleMesh(meshes["box"], shaders["PlayerShader"], modelMatrix, glm::vec3(0.580, 0.709, 0.752));
                 }
-                //construiesc inamicul
-                else if (grid_dup[i][j] == 1) {
-                    glm::mat4 modelMatrix = glm::mat4(1);
-                    enemies[aux].x = 7 - i * 1.2f;
-                    enemies[aux].z = 7 - j * 1.2f;
-                    enemies_dup[aux].x = 7 - i * 1.2f;
-                    enemies_dup[aux].z = 7 - j * 1.2f;
-                   
-                    modelMatrix = glm::translate(modelMatrix, glm::vec3(enemies[aux].x, 0.5f, enemies[aux].z));
-                    modelMatrix = glm::scale(modelMatrix, glm::vec3(0.4f));
-                    aux = aux + 1;
-                    MyRenderSimpleMesh(meshes["box"], shaders["PlayerShader"], modelMatrix, glm::vec3(0, 0.188, 0.247));
-                }
             }
         }
-        counter = aux;
+        //construiesc inamicul
+        for (int i = 0; i < counter; i++) {
+            if (enemies[i].onScreen == true) {
+                glm::mat4 modelMatrix = glm::mat4(1);
+                modelMatrix = glm::translate(modelMatrix, glm::vec3(enemies[i].x, 0.5f, enemies[i].z));
+                modelMatrix = glm::scale(modelMatrix, glm::vec3(0.4f));
+                MyRenderSimpleMesh(meshes["box"], shaders["PlayerShader"], modelMatrix, glm::vec3(0, 0.188, 0.247));
+            }
+        }
     }
 
     // enemies movement 
-     // TODO make this work, intra dar de ce nu se modifica?!
+     // TODO fa-l sa se miste cum trebuie, fara sa ramana blocat
     {
         for (int i = 0; i < counter; i++) {
-            if(i == 0)
-                printf("%f %f %f %f\n", enemies[i].x, enemies_dup[i].x, enemies[i].z, enemies_dup[i].x);
-            if (enemies[i].x < enemies_dup[i].x + 1.f) {
-                enemies[i].x += deltaTimeSeconds * 10;
-                if( i == 0)
-                    printf("%f aaaaaa\n", enemies[i].x); //aici se schimba dar de ce nu retine ?
-              //  printf("intri?");
+            if (enemies[i].onScreen == true) {
+                if (enemies[i].x < enemies_dup[i].x + 0.3f)
+                    enemies[i].x += deltaTimeSeconds;
+                else if (enemies[i].z < enemies_dup[i].z + 0.3f)
+                    enemies[i].z += deltaTimeSeconds;
+                else if (enemies[i].x >= enemies_dup[i].x - 0.3f)
+                    enemies[i].x -= deltaTimeSeconds; 
+                else if (enemies[i].z > enemies_dup[i].z - 0.3f)
+                    enemies[i].z -= deltaTimeSeconds;/**/
             }
-            else if (enemies[i].x > enemies_dup[i].x - 1.f)
-                enemies[i].x -= deltaTimeSeconds * 100;
-            if (enemies[i].z < enemies_dup[i].z + 1.f)
-                enemies[i].z += deltaTimeSeconds * 100;
-            else if (enemies[i].z > enemies_dup[i].z - 1.f)
-                enemies[i].z -= deltaTimeSeconds * 100;
         }
     }
+}
+
+//TODO adapteaza asta
+bool Tema2::checkProjectileEnemyCollision(int i) {
+    /*if (!enemy[i].onScreen)
+        return false;
+    float a = enemy[i].width;
+    float b = enemy[i].height;
+
+    float x = (projectile.x + 0.03f * cos(projectile.angle)) - enemy[i].x + 2.0f;
+    float y = (projectile.y + 0.06f * sin(projectile.angle)) - enemy[i].y + 2.0f;
+
+    if (pow(x / a, 2) + pow(y / b, 2) <= 1 && (projectile.x != player.x || projectile.y != player.y)) {
+        enemy[i].onScreen = false;
+        projectile.x = player.x;
+        projectile.y = player.y;
+        projectile.shot = false;
+        score += 1;
+        if (score == maxScore) {
+            printf("Congratulations! you are the winner! :)\n");
+            Exit();
+        }
+        else
+            printf("~~~~~~Your score is %d! Keep playing!~~~~~~~\n", score);
+        return true;
+    }*/
+    return false;
 }
 
 void Tema2::MyRenderSimpleMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, const glm::vec3& color)
@@ -589,7 +645,7 @@ void Tema2::OnInputUpdate(float deltaTime, int mods)
     if (window->KeyHold(GLFW_KEY_W)) {
         player.rotation = 0.0f;
         player.x -= deltaTime;
-        camera->Set(glm::vec3(player.x + 1.0f, player.y + 1.0f, player.z + 1.0f), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
+        camera->Set(glm::vec3(player.x + 1.5f, player.y + 1.f, player.z), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
 
         /* //if (camera->GetTargetPosition().y >= 0.45)
             camera->TranslateForward(cameraSpeed);
@@ -601,7 +657,7 @@ void Tema2::OnInputUpdate(float deltaTime, int mods)
     if (window->KeyHold(GLFW_KEY_A)) {
         player.rotation = 90.0f;
         player.z += deltaTime;
-        camera->Set(glm::vec3(player.x + 1.0f, player.y + 1.0f, player.z + 1.0f), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
+        camera->Set(glm::vec3(player.x + 1.5f, player.y + 1.f, player.z), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
 
         //camera->TranslateRight(-cameraSpeed);
     }
@@ -609,7 +665,7 @@ void Tema2::OnInputUpdate(float deltaTime, int mods)
     if (window->KeyHold(GLFW_KEY_S)) {
         player.rotation = 0.0f;
         player.x += deltaTime;
-        camera->Set(glm::vec3(player.x + 1.0f, player.y + 1.0f, player.z + 1.0f), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
+        camera->Set(glm::vec3(player.x + 1.5f, player.y + 1.f, player.z), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
 
      /*   if(camera->GetTargetPosition().y >= 0.45)
             camera->TranslateForward(-cameraSpeed);
@@ -620,7 +676,7 @@ void Tema2::OnInputUpdate(float deltaTime, int mods)
     if (window->KeyHold(GLFW_KEY_D)) {
         player.rotation = -90.0f;
         player.z -= deltaTime;
-        camera->Set(glm::vec3(player.x + 1.0f, player.y + 1.0f, player.z + 1.0f), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
+        camera->Set(glm::vec3(player.x + 1.5f, player.y + 1.f, player.z), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
 
        // camera->TranslateRight(cameraSpeed);
     }
