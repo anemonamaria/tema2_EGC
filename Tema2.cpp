@@ -46,14 +46,18 @@ void Tema2::Init()
     player.x = 0;
     player.y = 0;
     player.z = 0;
+    /*projectile.x = player.x;
+    projectile.y = player.y;
+    projectile.z = player.z;*/
     player.rotation = 0.0f;
-    player.lives = 1.0f;
+    player.lives = 0.5f;
     player.position = glm::vec3(0, 0, 0);
-    nrOfEnemies = 5;
+    nrOfEnemies = maxScore = 5;
+    lives = 0;   // nu trebuie sa depaseasca nrOfEnemies
     counter = 0;
     myTime = 0.5f;
     myLife = 0.5f;
-
+    score = 0;
     grid.resize(GRID_SIZE);
     grid_dup.resize(GRID_SIZE + 2);
     for (int i = 0; i < GRID_SIZE; i++) {
@@ -108,18 +112,18 @@ void Tema2::Init()
                 enemies_dup[aux].x = 7 - i * 1.2f;
                 enemies_dup[aux].z = 7 - j * 1.2f;
                 enemies[aux].onScreen = true;
+                enemies[aux].moveX = rand() % 2;
+                enemies[aux].moveY = rand() % 2;
                 aux = aux + 1;
             }
         }
     }
 
     counter = aux;
-    //TODO scoate jucatorul din perete
     player.x = 7 - startX * 1.2f;
     player.y = 0.5f;
     player.z = 7 - (startY + 1) * 1.2f;
-    // TODO fa camera sa urmareasca cum trebuie jucatorul
-    camera->Set(glm::vec3(player.x + 1.5f, player.y + 1.f, player.z), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
+    camera->Set(glm::vec3(player.x + 1.5f, player.y + 1.f, player.z), glm::vec3(player.x, player.y + 0.75f, player.z), glm::vec3(0, 1, 0));
     printf("Hello! Mult succes in Survival Maze!\n");
     printf("2 - perete \n1 - inamic \n0 - liber \nLabirnitul: \n");
     for (int i = 0; i < GRID_SIZE + 2; i++) {
@@ -128,8 +132,7 @@ void Tema2::Init()
         }
         printf("\n");
     }
-    /*printf("\nstart %d %d\n", startX, startY);
-    printf("\nend %d %d\n", endX, endY);*/
+
     //meshes
     {
         Mesh* mesh = new Mesh("box");
@@ -175,7 +178,6 @@ void Tema2::Init()
         player_shader->CreateAndLink();
         shaders[player_shader->GetName()] = player_shader;
     }
-    // TODO sterge shadersul vertexshader_bar
     projectionMatrix = glm::perspective(RADIANS(60), window->props.aspectRatio, 0.01f, 200.0f);
 
 }
@@ -315,15 +317,25 @@ void Tema2::Update(float deltaTimeSeconds)
 
         projectile.lenght = sqrt((double)(projectile.x) * (projectile.x));
 
+        for (int i = 0; i < counter; i++) {
+            checkProjectileEnemyCollision(i);
+        }
+
         if (projectile.lenght >= 3.5)
             ResetProjectile();
+    }
+     
+    // daca am ramas fara vieti
+    if (player.lives - 0.2 * lives <= 0) {
+        printf("~~~~~You have lost the game! : (~~~~~\n");
+        Exit();
     }
 
     //healthbar 
     {
         glm::mat4 modelMatrix = glm::mat4(1);
         modelMatrix = glm::translate(modelMatrix, glm::vec3(player.x, player.y, player.z) + glm::vec3(0, 0.65f, 0));
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(myLife));  // TODO de facut in functie de player.lives
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(player.lives -  0.1 * lives));  
         modelMatrix = glm::rotate(modelMatrix, RADIANS(90.f), glm::vec3(0, 1, 0));
         MyRenderSimpleMesh(meshes["healthbar"], shaders["PlayerShader"], modelMatrix, glm::vec3(0.921, 0.901, 0.270));
         if (myLife <= 0) {
@@ -344,7 +356,7 @@ void Tema2::Update(float deltaTimeSeconds)
     {
         glm::mat4 modelMatrix = glm::mat4(1);
         modelMatrix = glm::translate(modelMatrix, glm::vec3(player.x, player.y, player.z) + glm::vec3(0, 0.75f, 0));
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(myTime)); // TODO de facut asta sa scaleze cum trebuie
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(myTime));
         myTime -= deltaTimeSeconds / 100;
         modelMatrix = glm::rotate(modelMatrix, RADIANS(90.f), glm::vec3(0, 1, 0));
         MyRenderSimpleMesh(meshes["time"], shaders["PlayerShader"], modelMatrix, glm::vec3(0.921, 0.901, 0.270));
@@ -519,37 +531,48 @@ void Tema2::Update(float deltaTimeSeconds)
     }
 
     // enemies movement 
-     // TODO fa-l sa se miste cum trebuie, fara sa ramana blocat
     {
         for (int i = 0; i < counter; i++) {
             if (enemies[i].onScreen == true) {
-                if (enemies[i].x < enemies_dup[i].x + 0.3f)
+                if (enemies[i].x < enemies_dup[i].x + 0.3f && enemies[i].moveX == 1) {
                     enemies[i].x += deltaTimeSeconds;
-                else if (enemies[i].z < enemies_dup[i].z + 0.3f)
+                }
+                else if (enemies[i].x >= enemies_dup[i].x + 0.3f)
+                    enemies[i].moveX = 0;
+                if (enemies[i].z < enemies_dup[i].z + 0.3f && enemies[i].moveY == 1) {
                     enemies[i].z += deltaTimeSeconds;
-                else if (enemies[i].x >= enemies_dup[i].x - 0.3f)
-                    enemies[i].x -= deltaTimeSeconds; 
-                else if (enemies[i].z > enemies_dup[i].z - 0.3f)
+                }
+                else if (enemies[i].z >= enemies_dup[i].z + 0.3f)
+                    enemies[i].moveY = 0;
+                if (enemies[i].x >= enemies_dup[i].x - 0.3f && enemies[i].moveX == 0) {
+                    enemies[i].x -= deltaTimeSeconds;
+                }
+                else if (enemies[i].x < enemies_dup[i].x - 0.3f)
+                    enemies[i].moveX = 1;
+                if (enemies[i].z >= enemies_dup[i].z - 0.3f && enemies[i].moveY == 0) {
                     enemies[i].z -= deltaTimeSeconds;/**/
+                }
+                else if (enemies[i].z < enemies_dup[i].z - 0.3f)
+                    enemies[i].moveY = 1;
             }
+            checkPlayerEnemyCollision(i);
         }
     }
 }
 
-//TODO adapteaza asta
 bool Tema2::checkProjectileEnemyCollision(int i) {
-    /*if (!enemy[i].onScreen)
+    if (!enemies[i].onScreen)
         return false;
-    float a = enemy[i].width;
-    float b = enemy[i].height;
+    float a = 1.f;
+    float b = 1.f;
 
-    float x = (projectile.x + 0.03f * cos(projectile.angle)) - enemy[i].x + 2.0f;
-    float y = (projectile.y + 0.06f * sin(projectile.angle)) - enemy[i].y + 2.0f;
-
-    if (pow(x / a, 2) + pow(y / b, 2) <= 1 && (projectile.x != player.x || projectile.y != player.y)) {
-        enemy[i].onScreen = false;
-        projectile.x = player.x;
-        projectile.y = player.y;
+    float x = (player.x + projectile.x + 0.03f * cos(projectile.angle)) - enemies[i].x; // + 2.0f;
+    float y = (player.z + projectile.z + 0.06f * sin(projectile.angle)) - enemies[i].z; // + 2.0f;
+    if (pow(x / a, 2) + pow(y / b, 2) <= 1 && (projectile.x != player.x || projectile.z != player.z)) {
+        enemies[i].onScreen = false;
+        projectile.x = 0;
+        projectile.y = 0;
+        projectile.z = 0;
         projectile.shot = false;
         score += 1;
         if (score == maxScore) {
@@ -559,7 +582,25 @@ bool Tema2::checkProjectileEnemyCollision(int i) {
         else
             printf("~~~~~~Your score is %d! Keep playing!~~~~~~~\n", score);
         return true;
-    }*/
+    }
+    return false;
+}
+
+bool Tema2::checkPlayerEnemyCollision(int i) {
+    if (!enemies[i].onScreen)
+        return false;
+    float a = 1.f;
+    float b = 1.f;
+
+    float x = player.x - enemies[i].x; // + 2.0f;
+    float y = player.z - enemies[i].z; // + 2.0f;
+    if (pow(x / a, 2) + pow(y / b, 2) <= 1) {
+        enemies[i].onScreen = false;
+        lives++;
+        
+        printf("~~~~~~Yo have lost a life!~~~~~~~\nMax = 5   Your lives = %f\n", player.lives * 10 - lives);
+        return true;
+    }
     return false;
 }
 
@@ -645,40 +686,25 @@ void Tema2::OnInputUpdate(float deltaTime, int mods)
     if (window->KeyHold(GLFW_KEY_W)) {
         player.rotation = 0.0f;
         player.x -= deltaTime;
-        camera->Set(glm::vec3(player.x + 1.5f, player.y + 1.f, player.z), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
-
-        /* //if (camera->GetTargetPosition().y >= 0.45)
-            camera->TranslateForward(cameraSpeed);
-       else
-            camera->TranslateForward(-cameraSpeed);*/
-
+        camera->Set(glm::vec3(player.x + 1.5f, player.y + 1.f, player.z), glm::vec3(player.x, player.y + 0.75f, player.z), glm::vec3(0, 1, 0));
     }
 
     if (window->KeyHold(GLFW_KEY_A)) {
         player.rotation = 90.0f;
         player.z += deltaTime;
-        camera->Set(glm::vec3(player.x + 1.5f, player.y + 1.f, player.z), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
-
-        //camera->TranslateRight(-cameraSpeed);
+        camera->Set(glm::vec3(player.x + 1.5f, player.y + 1.f, player.z), glm::vec3(player.x, player.y + 0.75f, player.z), glm::vec3(0, 1, 0));
     }
 
     if (window->KeyHold(GLFW_KEY_S)) {
         player.rotation = 0.0f;
         player.x += deltaTime;
-        camera->Set(glm::vec3(player.x + 1.5f, player.y + 1.f, player.z), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
-
-     /*   if(camera->GetTargetPosition().y >= 0.45)
-            camera->TranslateForward(-cameraSpeed);
-        else
-            camera->TranslateForward(cameraSpeed);*/
+        camera->Set(glm::vec3(player.x + 1.5f, player.y + 1.f, player.z), glm::vec3(player.x, player.y + 0.75f, player.z), glm::vec3(0, 1, 0));
     }
 
     if (window->KeyHold(GLFW_KEY_D)) {
         player.rotation = -90.0f;
         player.z -= deltaTime;
-        camera->Set(glm::vec3(player.x + 1.5f, player.y + 1.f, player.z), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
-
-       // camera->TranslateRight(cameraSpeed);
+        camera->Set(glm::vec3(player.x + 1.5f, player.y + 1.f, player.z), glm::vec3(player.x, player.y + 0.75f, player.z), glm::vec3(0, 1, 0));
     }
 
     if (window->KeyHold(GLFW_KEY_Q)) {
@@ -694,7 +720,6 @@ void Tema2::OnInputUpdate(float deltaTime, int mods)
     if (window->GetSpecialKeyState() & GLFW_MOD_CONTROL) {
         if (projectile.shot == false && window->KeyHold(GLFW_KEY_SPACE))
             projectile.shot = true;
-
     }
 }
 
@@ -714,12 +739,13 @@ void Tema2::OnKeyRelease(int key, int mods)
 void Tema2::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY)
 {
     // Add mouse move event
-        float sensivityOX = 0.001f;
-        float sensivityOY = 0.001f;
+        float sensivityOX = 0.01f;
+        float sensivityOY = 0.01f;
 
         if (window->GetSpecialKeyState() & GLFW_MOD_CONTROL) {
             renderCameraTarget = false;
-            camera->Set(glm::vec3(player.x, player.y + 0.5f, player.z), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));  
+            camera->Set(glm::vec3(player.x, player.y + 0.5f, player.z), glm::vec3(0, 1, player.z), glm::vec3(0, 1, 0));
+            
             // TODO de ce nu te misti complet?
             camera->RotateFirstPerson_OX(sensivityOX * -deltaY);
             camera->RotateFirstPerson_OY(sensivityOY * -deltaX);

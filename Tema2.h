@@ -38,7 +38,7 @@ namespace m1
         bool Tema2::isInBounds(int x, int y);
         void Tema2::visitGrid(int x, int y, vector<vector<int>> &grid);
         bool Tema2::checkProjectileEnemyCollision(int i);
-
+        bool Tema2::checkPlayerEnemyCollision(int i);
 
     protected:
         implemented::Camera_hw* camera;
@@ -78,6 +78,7 @@ namespace m1
             float y;
             float z;
             bool onScreen;
+            int moveX, moveY;
         } enemy;
 
         int cursorX, cursorY;
@@ -103,5 +104,6 @@ namespace m1
         float myTime;
         float myLife;
         //int counter;
+        int score, maxScore, lives;
     };
 };   // namespace m1
