@@ -35,7 +35,7 @@ namespace implemented
             this->up    = glm::cross(right, forward);
         }
 
-        void MoveForward(float distance)
+        glm::vec3 MoveForward(float distance)
         {
             // Translates the camera using the `dir` vector computed from
             // `forward`. Movement will always keep the camera at the same
@@ -44,23 +44,26 @@ namespace implemented
             // distance (height) to the ground!
             glm::vec3 dir = glm::normalize(glm::vec3(forward.x, 0, forward.z));
             position += dir * distance;
+            return position;
         }
 
-        void TranslateForward(float distance)
+        glm::vec3 TranslateForward(float distance)
         {
             // TODO(student): Translate the camera using the `forward` vector.
             // What's the difference between `TranslateForward()` and
             // `MoveForward()`?
             position += glm::normalize(forward) * distance;
+            return position;
         }
 
-        void TranslateUpward(float distance)
+        glm::vec3 TranslateUpward(float distance)
         {
             // TODO(student): Translate the camera using the `up` vector.
             position += glm::normalize(up) * distance;
+            return position;
         }
 
-        void TranslateRight(float distance)
+        glm::vec3 TranslateRight(float distance)
         {
             // TODO(student): See instructions below. Read the entire thing!
             // You need to translate the camera using the `right` vector.
@@ -73,6 +76,7 @@ namespace implemented
             // ground plane), which makes more sense because we will keep the
             // same distance from the ground plane.
             position += glm::normalize(right) * distance;
+            return position;
         }
 
         void RotateFirstPerson_OX(float angle)

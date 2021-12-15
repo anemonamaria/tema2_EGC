@@ -31,7 +31,6 @@ namespace m1
         void OnMouseScroll(int mouseX, int mouseY, int offsetX, int offsetY) override;
         void OnWindowResize(int width, int height) override;
         void Tema2::ResetProjectile();
-        void Tema2::setPlayerAngle();
         Mesh* Tema2::CreateMySquare(const std::string& name, glm::vec3 leftBottomCorner, float length,
             float width, glm::vec3 color, bool fill);
         void Tema2::MyRenderSimpleMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, const glm::vec3& color);
@@ -103,7 +102,7 @@ namespace m1
         GLenum cullFace;
         float myTime;
         float myLife;
-        //int counter;
         int score, maxScore, lives;
+        glm::vec3 auxPosOfCamera;
     };
 };   // namespace m1
