@@ -46,9 +46,6 @@ void Tema2::Init()
     player.x = 0;
     player.y = 0;
     player.z = 0;
-    /*projectile.x = player.x;
-    projectile.y = player.y;
-    projectile.z = player.z;*/
     player.rotation = 0.0f;
     player.lives = 0.5f;
     player.position = glm::vec3(0, 0, 0);
@@ -312,7 +309,7 @@ void Tema2::Update(float deltaTimeSeconds)
     //projectile movement
     if (projectile.shot == true) 
     {
-         //TODO aici de facut sa se orientezde in functie de orientarea jucatorului
+         //TODO aici de facut sa se orienteze in functie de jucator
         projectile.x -= deltaTimeSeconds * 59;
 
         projectile.lenght = sqrt((double)(projectile.x) * (projectile.x));
@@ -739,14 +736,14 @@ void Tema2::OnKeyRelease(int key, int mods)
 void Tema2::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY)
 {
     // Add mouse move event
-        float sensivityOX = 0.01f;
-        float sensivityOY = 0.01f;
+        float sensivityOX = 0.05f;
+        float sensivityOY = 0.05f;
 
         if (window->GetSpecialKeyState() & GLFW_MOD_CONTROL) {
             renderCameraTarget = false;
             camera->Set(glm::vec3(player.x, player.y + 0.5f, player.z), glm::vec3(0, 1, player.z), glm::vec3(0, 1, 0));
             
-            // TODO de ce nu te misti complet?
+            // TODO de ce nu te misti complet cand mouse-ul se misca incet? 
             camera->RotateFirstPerson_OX(sensivityOX * -deltaY);
             camera->RotateFirstPerson_OY(sensivityOY * -deltaX);
         }
