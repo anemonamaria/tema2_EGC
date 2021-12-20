@@ -125,7 +125,13 @@ void Tema2::Init()
     player.x = auxPosOfCamera.x;
     player.y = auxPosOfCamera.y;
     player.z = auxPosOfCamera.z;
-    camera->Set(glm::vec3(auxPosOfCamera.x + 1.5f, auxPosOfCamera.y + 1.f, auxPosOfCamera.z), glm::vec3(auxPosOfCamera.x, auxPosOfCamera.y + 0.75f, auxPosOfCamera.z), glm::vec3(0, 1, 0));
+    finalCamera.x = auxPosOfCamera.x + 1.5f;
+    finalCamera.y = auxPosOfCamera.y + 1.f;
+    finalCamera.z = auxPosOfCamera.z;
+    sndFinalCamera.x = auxPosOfCamera.x;
+    sndFinalCamera.y = auxPosOfCamera.y + 0.75f;
+    sndFinalCamera.z = auxPosOfCamera.z;
+    camera->Set(glm::vec3(finalCamera.x, finalCamera.y, finalCamera.z), glm::vec3(sndFinalCamera.x, sndFinalCamera.y, sndFinalCamera.z), glm::vec3(0, 1, 0));
     printf("Hello! Mult succes in Survival Maze!\n");
     printf("2 - perete \n1 - inamic \n0 - liber \nLabirnitul: \n");
     for (int i = 0; i < GRID_SIZE + 2; i++) {
@@ -292,9 +298,9 @@ Mesh* Tema2::CreateMySquare(const std::string& name, glm::vec3 leftBottomCorner,
 void Tema2::Update(float deltaTimeSeconds)
 {
 
-    player.x = auxPosOfCamera.x;
-    player.y = auxPosOfCamera.y;
-    player.z = auxPosOfCamera.z;
+    player.x = finalCamera.x - 1.5f;
+    player.y = finalCamera.y - 1.f;
+    player.z = finalCamera.z;
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);  // ca sa putem vedea prin obiecte
@@ -669,12 +675,10 @@ void Tema2::OnInputUpdate(float deltaTime, int mods)
 {
     // move the camera only if MOUSE_RIGHT button is pressed
     float cameraSpeed = 2.0f * deltaTime;
-
+    //TODO de reparat camera
     if (window->KeyHold(GLFW_KEY_W)) {
         player.rotation = 0.0f;
-        auxPosOfCamera = camera->TranslateForward(cameraSpeed);
-        //auxPosOfCamera.x -= deltaTime;
-        //camera->Set(glm::vec3(auxPosOfCamera.x + 1.5f, auxPosOfCamera.y + 1.f, auxPosOfCamera.z), glm::vec3(auxPosOfCamera.x, auxPosOfCamera.y + 0.75f, auxPosOfCamera.z), glm::vec3(0, 1, 0));
+        finalCamera = camera->TranslateForward(cameraSpeed);   // auxPosOfCamera
     }
 
     if (window->KeyHold(GLFW_KEY_A)) {
@@ -682,12 +686,12 @@ void Tema2::OnInputUpdate(float deltaTime, int mods)
             player.rotation += 1.0f;
         else
             player.rotation = 90.0f;
-        auxPosOfCamera = camera->TranslateRight(-cameraSpeed);
+        finalCamera = camera->TranslateRight(-cameraSpeed);
     }
 
     if (window->KeyHold(GLFW_KEY_S)) {
         player.rotation = 0.0f;
-        auxPosOfCamera = camera->TranslateForward(-cameraSpeed);
+        finalCamera = camera->TranslateForward(-cameraSpeed);
     }
     
     if (window->KeyHold(GLFW_KEY_D)) {
@@ -695,9 +699,17 @@ void Tema2::OnInputUpdate(float deltaTime, int mods)
             player.rotation += -1.0f;
         else
             player.rotation = -90.0f;
-        auxPosOfCamera = camera->TranslateRight(cameraSpeed);
+        finalCamera = camera->TranslateRight(cameraSpeed);
+        
     }
-
+    
+    //finalCamera.x = auxPosOfCamera.x + 1.5f;
+    //finalCamera.y = auxPosOfCamera.y + 1.f;
+    //finalCamera.z = auxPosOfCamera.z;
+    sndFinalCamera.x = finalCamera.x - 1.5f;
+    sndFinalCamera.y = finalCamera.y - 0.25f;
+    sndFinalCamera.z = finalCamera.z;
+    
     if (window->KeyHold(GLFW_KEY_Q)) {
         if (camera->GetTargetPosition().y > 0.46)
             camera->TranslateUpward(-cameraSpeed);
@@ -737,11 +749,11 @@ void Tema2::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY)
 
         if (window->GetSpecialKeyState() == 0) {
             renderCameraTarget = true;
-           
+
             camera->RotateThirdPerson_OX(sensivityOX * -deltaY);
             camera->RotateThirdPerson_OY(sensivityOY * -deltaX);
         }
-        
+
         if (window->GetSpecialKeyState() & GLFW_MOD_CONTROL) {
             renderCameraTarget = false;
 
@@ -750,6 +762,7 @@ void Tema2::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY)
         }
         renderCameraTarget = true;
     }
+    
 }
 
 void Tema2::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
