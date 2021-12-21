@@ -103,6 +103,6 @@ namespace m1
         float myTime;
         float myLife;
         int score, maxScore, lives;
-        glm::vec3 auxPosOfCamera, finalCamera, sndFinalCamera;
+        glm::vec3 auxPosOfCamera, posCamera, centerCamera;
     };
 };   // namespace m1
