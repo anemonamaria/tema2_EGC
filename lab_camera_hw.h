@@ -165,6 +165,7 @@ namespace implemented
             return position + forward * distanceToTarget;
         }
 
+
      public:
         float distanceToTarget;
         glm::vec3 position;

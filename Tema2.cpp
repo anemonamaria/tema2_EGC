@@ -365,7 +365,7 @@ void Tema2::Update(float deltaTimeSeconds)
         glm::mat4 modelMatrix = glm::mat4(1);
         modelMatrix = glm::translate(modelMatrix, glm::vec3(player.x, player.y, player.z) + glm::vec3(0, 0.75f, 0));
         modelMatrix = glm::scale(modelMatrix, glm::vec3(myTime));
-        myTime -= deltaTimeSeconds / 100;
+        myTime -= deltaTimeSeconds / 1000;
         modelMatrix = glm::rotate(modelMatrix, RADIANS(90.f), glm::vec3(0, 1, 0));
         MyRenderSimpleMesh(meshes["time"], shaders["PlayerShader"], modelMatrix, glm::vec3(0.921, 0.901, 0.270));
         if (myTime <= 0) {
@@ -679,7 +679,8 @@ void Tema2::OnInputUpdate(float deltaTime, int mods)
     //TODO de reparat camera
     if (window->KeyHold(GLFW_KEY_W)) {
         player.rotation = 0.0f;
-        auxPosOfCamera = camera->TranslateForward(cameraSpeed);   // auxPosOfCamera sau posCamera
+        auxPosOfCamera = camera->TranslateForward(cameraSpeed);   // posCamera --> asa se intampla ceva ciudat la centrarea jucatorului
+        // daca pastrez auxPosCamera camera va intra in corpul jucatorului
     }
 
     if (window->KeyHold(GLFW_KEY_A)) {
@@ -708,7 +709,7 @@ void Tema2::OnInputUpdate(float deltaTime, int mods)
     posCamera.z = auxPosOfCamera.z;
     centerCamera.x = posCamera.x - 1.5f;
     centerCamera.y = posCamera.y - 0.25f;
-    centerCamera.z = posCamera.z;  /**/
+    centerCamera.z = posCamera.z;/**/  /**/
     
     if (window->KeyHold(GLFW_KEY_Q)) {
         if (camera->GetTargetPosition().y > 0.46)
