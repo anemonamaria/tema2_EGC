@@ -365,7 +365,7 @@ void Tema2::Update(float deltaTimeSeconds)
         glm::mat4 modelMatrix = glm::mat4(1);
         modelMatrix = glm::translate(modelMatrix, glm::vec3(player.x, player.y, player.z) + glm::vec3(0, 0.75f, 0));
         modelMatrix = glm::scale(modelMatrix, glm::vec3(myTime));
-        myTime -= deltaTimeSeconds / 1000;
+        myTime -= deltaTimeSeconds / 500;
         modelMatrix = glm::rotate(modelMatrix, RADIANS(90.f), glm::vec3(0, 1, 0));
         MyRenderSimpleMesh(meshes["time"], shaders["PlayerShader"], modelMatrix, glm::vec3(0.921, 0.901, 0.270));
         if (myTime <= 0) {
@@ -564,8 +564,8 @@ bool Tema2::checkProjectileEnemyCollision(int i) {
     float a = 1.f;
     float b = 1.f;
 
-    float x = (player.x + projectile.x + 0.03f * cos(projectile.angle)) - enemies[i].x; // + 2.0f;
-    float y = (player.z + projectile.z + 0.06f * sin(projectile.angle)) - enemies[i].z; // + 2.0f;
+    float x = (player.x + projectile.x + 0.03f * cos(projectile.angle)) - enemies[i].x; 
+    float y = (player.z + projectile.z + 0.06f * sin(projectile.angle)) - enemies[i].z; 
     if (pow(x / a, 2) + pow(y / b, 2) <= 1 && (projectile.x != player.x || projectile.z != player.z)) {
         enemies[i].onScreen = false;
         projectile.x = 0;
@@ -586,8 +586,8 @@ bool Tema2::checkPlayerEnemyCollision(int i) {
     float a = 1.f;
     float b = 1.f;
 
-    float x = player.x - enemies[i].x; // + 2.0f;
-    float y = player.z - enemies[i].z; // + 2.0f;
+    float x = player.x - enemies[i].x; 
+    float y = player.z - enemies[i].z; 
     if (pow(x / a, 2) + pow(y / b, 2) <= 1) {
         enemies[i].onScreen = false;
         lives++;
@@ -676,7 +676,6 @@ void Tema2::OnInputUpdate(float deltaTime, int mods)
 {
     // move the camera only if MOUSE_RIGHT button is pressed
     float cameraSpeed = 2.0f * deltaTime;
-    //TODO de reparat camera
     if (window->KeyHold(GLFW_KEY_W)) {
         player.rotation = 0.0f;
         auxPosOfCamera = camera->TranslateForward(cameraSpeed);   // posCamera --> asa se intampla ceva ciudat la centrarea jucatorului
